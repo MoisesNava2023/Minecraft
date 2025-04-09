@@ -112,13 +112,7 @@
   <audio id="sonido-entrada" src="MATERIAL PANEL/HIT.MP3"></audio> <!-- Asegúrate de que el archivo esté en esa ruta -->
 
   <script>
- function vibrarBoton() {
-  if ("vibrate" in navigator) {
-    navigator.vibrate(100); // Vibra por 100 milisegundos
-  } else {
-    console.log("Este dispositivo no soporta vibración.");
-  }
- }
+
     function validarContraseña() {
       const sonido = document.getElementById("sonido-entrada");
       sonido.play();
