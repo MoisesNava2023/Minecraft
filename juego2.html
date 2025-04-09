@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Flappy Bird</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #000000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: sans-serif;
+      background-image: url('MATERIAL/88.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    #jumpButton {
+      margin-top: 20px;
+      width: 190px;
+      height: 90px;
+      cursor: pointer;
+      transition: transform 0.1s;
+      background-color: #000000;
+      border-radius: 20px;
+    }
+
+    #jumpButton:active {
+      transform: scale(0.95);
+    }
+
+    #score {
+      position: absolute;
+      top: 10px;
+      font-size: 24px;
+      font-weight: bold;
+      color: white;
+      text-shadow: 2px 2px 4px #000;
+    }
+
+    #highScore {
+      position: absolute;
+      top: 40px;
+      font-size: 18px;
+      color: #ddd;
+      text-shadow: 2px 2px 4px #000;
+    }
+
+    #lastScore {
+      position: absolute;
+      top: 70px;
+      font-size: 18px;
+      color: #bbb;
+      text-shadow: 2px 2px 4px #000;
+    }
+
+    #gameOverModal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+
+    .modal-content {
+      background-color: white;
+      padding: 30px;
+      border-radius: 15px;
+      text-align: center;
+      box-shadow: 0 0 10px #000;
+    }
+
+    .modal-content h2 {
+      margin-bottom: 20px;
+      font-size: 28px;
+      color: #333;
+    }
+
+    #restartButton {
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: #5e9e0b;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    #restartButton:hover {
+      background-color: #4c8208;
+    }
+
+    #skinMenuButton {
+      position: fixed;
+      bottom: 40px;
+      left: 20px;
+      z-index: 1000;
+      padding: 10px 14px;
+      background-color: #0077ff;
+      color: white;
+      font-size: 14px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #skinMenu {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(0,0,0,0.85);
+      padding: 20px;
+      border-radius: 12px;
+      display: none;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      z-index: 1001;
+    }
+
+    .skin-option {
+      width: 60px;
+      height: 60px;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid white;
+    }
+
+    .skin-option img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .locked {
+      filter: grayscale(100%);
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <div id="score">Puntaje: 0</div>
+  <div id="highScore">Mejor puntaje: 0</div>
+  <div id="lastScore">Último puntaje: 0</div>
+  <canvas id="gameCanvas" width="340" height="580"></canvas>
+  <img id="jumpButton" src="MATERIAL/boton.png" alt="Saltar" />
+
+  <button id="skinMenuButton">SKINS</button>
+  <div id="skinMenu"></div>
+
+  <a href="panel.html" id="closeButton" style="position: fixed; bottom: 40px; right: 20px; z-index: 1000;">
+    <button style="padding: 8px 12px; font-size: 14px; border-radius: 8px; background-color: #e00b0b; color: white; border: none; cursor: pointer;">
+      VOLVER
+    </button>
+  </a>
+
+  <p style="margin-top: 15px; color: rgb(197, 196, 196); font-weight: bold; text-shadow: 1px 1px 2px #000;">
+    Hecho por Moises Navarrete
+  </p>
+
+  <div id="gameOverModal">
+    <div class="modal-content">
+      <h2>¡Has Muerto!</h2>
+      <button id="restartButton">Respawn</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreDisplay = document.getElementById('score');
+    const highScoreDisplay = document.getElementById('highScore');
+    const lastScoreDisplay = document.getElementById('lastScore');
+
+    const backgroundImage = new Image();
+    backgroundImage.src = "MATERIAL/NETHER/Back1.png";
+
+    const birdImage = new Image();
+    const savedSkin = localStorage.getItem('selectedSkin') || 'b1.png';
+    birdImage.src = `MATERIAL/NETHER/${savedSkin}`;
+
+    const pipeImage = new Image();
+    pipeImage.src = "MATERIAL/NETHER/tubo2.png";
+
+    let birdY = 150;
+    let birdVelocity = 10;
+    const gravity = 0.6;
+    const jumpStrength = -8;
+    const birdX = 50;
+    let obstacles = [];
+    let frame = 0;
+    let score = 0;
+    let gameOver = false;
+    let gameStarted = false;
+    let highScore = parseInt(localStorage.getItem('flappyHighScore')) || 0;
+    highScoreDisplay.textContent = `Mejor puntaje: ${highScore}`;
+
+    const obstacleSpeed = 5;
+    const spawnRate = Math.floor(120 * (2 / obstacleSpeed));
+
+    const backgroundMusic = new Audio('MATERIAL/NETHER/Back.MP3');
+    const deathSound = new Audio('MATERIAL/NETHER/HIT.MP3');
+    const jumpSound = new Audio('MATERIAL/NETHER/salto1.MP3');
+
+    function resetGame() {
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('flappyHighScore', highScore);
+      }
+      highScoreDisplay.textContent = `Mejor puntaje: ${highScore}`;
+      lastScoreDisplay.textContent = `Último puntaje: ${score}`;
+      birdY = 150;
+      birdVelocity = 0;
+      obstacles = [];
+      frame = 0;
+      score = 0;
+      gameOver = false;
+      gameStarted = false;
+      scoreDisplay.textContent = 'Puntaje: 0';
+      birdImage.src = `MATERIAL/NETHER/${localStorage.getItem('selectedSkin') || 'b1.png'}`;
+      drawInitialScreen();
+      backgroundMusic.play();
+    }
+
+    function drawInitialScreen() {
+      drawBackground();
+      drawBird();
+    }
+
+    function drawBackground() {
+      ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+    }
+
+    function drawBird() {
+      ctx.drawImage(birdImage, birdX - 25, birdY - 25, 40, 40);
+    }
+
+    function drawObstacles() {
+      obstacles.forEach(ob => {
+        let y = ob.top;
+        while (y > 0) {
+          const h = Math.min(pipeImage.height, y);
+          ctx.save();
+          ctx.translate(ob.x + ob.width / 2, y - h / 2);
+          ctx.scale(1, -1);
+          ctx.drawImage(pipeImage, -ob.width / 2, -h / 2, ob.width, h);
+          ctx.restore();
+          y -= h;
+        }
+
+        let bottomY = ob.bottomY;
+        let remaining = canvas.height - bottomY;
+        y = bottomY;
+        while (remaining > 0) {
+          const h = Math.min(pipeImage.height, remaining);
+          ctx.drawImage(pipeImage, ob.x, y, ob.width, h);
+          y += h;
+          remaining -= h;
+        }
+      });
+    }
+
+    function updateObstacles() {
+      if (frame % spawnRate === 0) {
+        const gap = 150;
+        const top = Math.random() * 200 + 20;
+        obstacles.push({
+          x: canvas.width,
+          width: 40,
+          top: top,
+          bottomY: top + gap,
+          passed: false
+        });
+      }
+
+      obstacles.forEach(ob => {
+        ob.x -= obstacleSpeed;
+        if (!ob.passed && ob.x + ob.width < birdX) {
+          ob.passed = true;
+          score++;
+          scoreDisplay.textContent = `Puntaje: ${score}`;
+        }
+      });
+
+      obstacles = obstacles.filter(ob => ob.x + ob.width > 0);
+    }
+
+    function checkCollision() {
+      for (let ob of obstacles) {
+        if (
+          birdX + 15 > ob.x && birdX - 15 < ob.x + ob.width &&
+          (birdY - 15 < ob.top || birdY + 15 > ob.bottomY)
+        ) {
+          return true;
+        }
+      }
+      if (birdY + 15 > canvas.height || birdY - 15 < 0) {
+        return true;
+      }
+      return false;
+    }
+
+    function update() {
+      if (gameOver) return;
+      drawBackground();
+      birdVelocity += gravity;
+      birdY += birdVelocity;
+      drawBird();
+      updateObstacles();
+      drawObstacles();
+
+      if (checkCollision()) {
+        gameOver = true;
+        birdImage.src = "MATERIAL/NETHER/b2.png";
+        drawBackground();
+        drawBird();
+        drawObstacles();
+        deathSound.play();
+        setTimeout(() => {
+          document.getElementById('gameOverModal').style.display = 'flex';
+        }, 500);
+        return;
+      }
+
+      frame++;
+      requestAnimationFrame(update);
+    }
+
+    function jump() {
+      if (!gameStarted) {
+        gameStarted = true;
+        backgroundMusic.loop = true;
+        backgroundMusic.play();
+        update();
+      }
+      if (!gameOver) {
+        birdVelocity = jumpStrength;
+      }
+    }
+
+    document.getElementById('jumpButton').addEventListener('click', () => {
+      jump();
+      jumpSound.play();
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        jump();
+        jumpSound.play();
+      }
+    });
+
+    document.getElementById('restartButton').addEventListener('click', () => {
+      deathSound.play();
+      document.getElementById('gameOverModal').style.display = 'none';
+      resetGame();
+    });
+
+    document.getElementById('closeButton').addEventListener('click', (e) => {
+      deathSound.play();
+    });
+
+    // 🧠 SKIN SYSTEM
+    const skins = [
+      { file: 'b1.png', unlockScore: 0 },
+      { file: 'b22.png', unlockScore: 50 },
+      { file: 'b3.png', unlockScore: 100 },
+      { file: 'b4.png', unlockScore: 150 }
+    ];
+
+    const skinMenu = document.getElementById('skinMenu');
+    const skinMenuButton = document.getElementById('skinMenuButton');
+
+    skinMenuButton.addEventListener('click', () => {
+      skinMenu.style.display = skinMenu.style.display === 'flex' ? 'none' : 'flex';
+      loadSkins();
+    });
+
+    function loadSkins() {
+      skinMenu.innerHTML = '';
+      skins.forEach(skin => {
+        const div = document.createElement('div');
+        div.classList.add('skin-option');
+        if (highScore < skin.unlockScore) div.classList.add('locked');
+        const img = document.createElement('img');
+        img.src = `MATERIAL/NETHER/${skin.file}`;
+        div.appendChild(img);
+        if (highScore >= skin.unlockScore) {
+          div.addEventListener('click', () => {
+            localStorage.setItem('selectedSkin', skin.file);
+            birdImage.src = `MATERIAL/NETHER/${skin.file}`;
+            skinMenu.style.display = 'none';
+          });
+        }
+        skinMenu.appendChild(div);
+      });
+    }
+
+    let assetsLoaded = 0;
+    [backgroundImage, birdImage, pipeImage].forEach(img => {
+      img.onload = () => {
+        assetsLoaded++;
+        if (assetsLoaded === 3) {
+          drawInitialScreen();
+        }
+      };
+    });
+
+    localStorage.setItem("juego2", "Progreso del jugador");
+  </script>
+  
+  
+</body>
+</html>

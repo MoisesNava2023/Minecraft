@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inicio de Sesión</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #1a1a1a;
+      color: white;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background-image: url('MATERIAL MENU/back 1.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    .login-container {
+      width: 90%;
+      max-width: 400px;
+      background: #2e2e2e;
+      padding: 2rem;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(255,255,255,0.1);
+      text-align: center;
+    }
+
+    img {
+      width: 100%;
+      max-width: 200px;
+      margin-bottom: 1rem;
+    }
+
+    h2 {
+      margin-bottom: 1rem;
+    }
+
+    input[type="password"] {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 10px;
+      border: none;
+      font-size: 1rem;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 1.5rem;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border: none;
+      background: #4caf50;
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #45a049;
+    }
+
+    #error {
+      color: red;
+      margin-top: 10px;
+    }
+
+    footer {
+      margin-top: 2rem;
+      color: white;
+      font-size: 0.9rem;
+    }
+    img {
+  width: 100%;
+  max-width: 300px;
+  margin-bottom: 1rem;
+}
+.h2 {
+    margin-top: 2rem;
+    font-size: 0.5rem; 
+}
+
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <img src="MATERIAL MENU/boton.png" alt="Imagen del juego">
+
+    <input type="password" id="password" placeholder="Ingresa tu codigo">
+    <button onclick="validarContraseña()">Entrar</button>
+    <p id="error"></p>
+  </div>
+
+  <footer>
+    Hecho por Moises Navarrete
+  </footer>
+
+  <audio id="sonido-entrada" src="MATERIAL PANEL/HIT.MP3"></audio> <!-- Asegúrate de que el archivo esté en esa ruta -->
+
+  <script>
+    function validarContraseña() {
+      const sonido = document.getElementById("sonido-entrada");
+      sonido.play();
+
+      const password = document.getElementById('password').value;
+      const contraseñaCorrecta = "1234"; // cámbiala si quieres
+
+      if (password === contraseñaCorrecta) {
+        // Retrasamos un poco para que se escuche el sonido antes de redirigir
+        setTimeout(() => {
+          window.location.href = "panel.html";
+        }, 500);
+      } else {
+        document.getElementById("error").textContent = "Contraseña incorrecta";
+      }
+    }
+  </script>
+
+</body>
+</html>

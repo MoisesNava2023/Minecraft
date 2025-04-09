@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Mi App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #2e2e2e;
+      font-family: sans-serif;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      min-height: 100vh;
+      background-image: url('MATERIAL MENU/back 1.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    .container {
+      text-align: center;
+      width: 100%;
+      max-width: 450px;
+      padding: 20px;
+      display: none;
+    }
+
+    h2 {
+      font-size: 5vw;
+      margin: 10px 0 30px;
+    }
+
+    .button {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      background-color: #3e3e3e;
+      border: 2px solid #666;
+      border-radius: 12px;
+      padding: 12px;
+      margin: 12px auto;
+      width: 100%;
+      cursor: pointer;
+      
+    }
+    .button1 {
+      display: flex;
+      background-color: crimson;
+      align-items: center;
+      justify-content: flex-start;
+      background-color: #3e3e3e;
+      border: 2px solid #666;
+      border-radius: 12px;
+      padding: 12px;
+      margin: 12px auto;
+      width: 100%;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .button:hover {
+      background-color: #505050;
+    }
+
+    .button img {
+      width: 20vw;
+      max-width: 60px;
+      height: auto;
+      margin-right: 15px;
+      border-radius: 10px;
+    }
+
+    .button span {
+      font-size: 4.5vw;
+      font-weight: bold;
+      text-align: left;
+    }
+
+    @media (min-width: 600px) {
+      h2 {
+        font-size: 24px;
+      }
+
+      .button span {
+        font-size: 20px;
+      }
+
+      .button img {
+        width: 60px;
+      }
+    }
+
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    .modal-content {
+      background: #444;
+      padding: 30px;
+      border-radius: 15px;
+      text-align: center;
+      max-width: 90%;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      animation: fadeIn 0.5s ease;
+    }
+
+    .modal-content h3 {
+      margin-top: 0;
+      font-size: 24px;
+    }
+
+    .modal-content p {
+      font-size: 16px;
+      margin: 20px 0;
+    }
+
+    .modal-content button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: #29a329;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .modal-content button:hover {
+      background: #218821;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* Imagen debajo de los botones */
+    .imagen-fondo {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    .imagen-fondo img {
+      width: 100%;
+      max-width: 350px;
+      border-radius: 15px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.6);
+    }
+  </style>
+</head>
+<body>
+
+  <audio id="clickSound" src="MATERIAL PANEL/sonido.MP3" preload="auto"></audio>
+  <audio id="bgMusic" src="MATERIAL PANEL/fondo.mp3" loop></audio>
+
+  <div class="modal" id="welcomeModal">
+    <div class="modal-content">
+      <h3>¡Bienvenido!</h3>
+      <p>Haz clic en Aceptar para comenzar.</p>
+      <button onclick="iniciarApp()">Aceptar</button>
+    </div>
+  </div>
+
+  <div class="container" id="mainContent">
+    <h2>Selecciona bioma</h2>
+
+    <div class="button" onclick="playSoundAndRedirect('juego1.html')">
+      <img src="MATERIAL PANEL/1.png" alt="Mi Mundo">
+      <span>Mi Mundo</span>
+    </div>
+
+    <div class="button" onclick="playSoundAndRedirect('juego2.html')">
+      <img src="MATERIAL PANEL/2.png" alt="Nether">
+      <span>Nether</span>
+    </div>
+
+    <div class="button" onclick="playSoundAndRedirect('juego3.html')">
+      <img src="MATERIAL PANEL/4.png" alt="Desert">
+      <span>Desert</span>
+    </div>
+
+    <div class="button" onclick="playSoundAndRedirect('https://www.tiktok.com/@moisesnavarreteoficial?is_from_webapp=1&sender_device=pc')">
+      <img src="MATERIAL PANEL/3.png" alt="TikTok">
+      <span>Sígueme en redes</span>
+    </div>
+
+    <!-- Imagen debajo de los botones -->
+    <div class="imagen-fondo">
+      <img src="MATERIAL/pnguide.png" alt="Imagen inferior">
+    </div>
+  </div>
+
+  <script>
+    function playSoundAndRedirect(url) {
+      const sound = document.getElementById("clickSound");
+      sound.currentTime = 0;
+      sound.play();
+      setTimeout(() => {
+        window.location.href = url;
+      }, 300);
+    }
+
+    function iniciarApp() {
+      document.getElementById("welcomeModal").style.display = "none";
+      document.getElementById("mainContent").style.display = "block";
+      const bgMusic = document.getElementById("bgMusic");
+      bgMusic.volume = 0.4;
+      bgMusic.play();
+    }
+  </script>
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Borrar LocalStorage</title>
+  <style>
+    
+
+    .btn-borrar {
+      background: linear-gradient(135deg, #0f850f, #4e4e4e);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    .btn-borrar:hover {
+      background: linear-gradient(135deg, #4e4e4e, #0f850f);
+      transform: scale(1.05);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+    }
+
+    .btn-borrar:active {
+      transform: scale(0.97);
+    }
+  </style>
+</head>
+<body>
+  <button class="btn-borrar" onclick="borrarLocalStorage()">🗑️ Borrar Datos</button>
+
+  <script>
+    function borrarLocalStorage() {
+      console.log("Antes de borrar:", localStorage);
+      localStorage.clear();
+      console.log("Después de borrar:", localStorage);
+      alert("LocalStorage eliminado.");
+    }
+  </script>
+</body>
+</html>
+
+  </script>
+</body>
+</html>
+
+
+
+
+
+</body>
+</html>
+
+
