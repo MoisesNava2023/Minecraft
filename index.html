@@ -99,6 +99,15 @@
 
     <input type="password" id="password" placeholder="Ingresa tu codigo">
     <button onclick="validarContraseña()">Entrar</button>
+   <script> 
+       function vibrarBoton() {
+  if ("vibrate" in navigator) {
+    navigator.vibrate(100); // Vibra por 100 milisegundos
+  } else {
+    console.log("Este dispositivo no soporta vibración.");
+  }
+}
+    <script>
     <p id="error"></p>
   </div>
 
@@ -109,13 +118,7 @@
   <audio id="sonido-entrada" src="MATERIAL PANEL/HIT.MP3"></audio> <!-- Asegúrate de que el archivo esté en esa ruta -->
 
   <script>
-    function vibrarBoton() {
-  if ("vibrate" in navigator) {
-    navigator.vibrate(100); // Vibra por 100 milisegundos
-  } else {
-    console.log("Este dispositivo no soporta vibración.");
-  }
-}
+ 
     function validarContraseña() {
       const sonido = document.getElementById("sonido-entrada");
       sonido.play();
@@ -138,17 +141,7 @@
 
 
 
-  <button onclick="vibrarBoton()">¡Tócame!</button>
 
-<script>
-function vibrarBoton() {
-  if ("vibrate" in navigator) {
-    navigator.vibrate(100); // Vibra por 100 milisegundos
-  } else {
-    console.log("Este dispositivo no soporta vibración.");
-  }
-}
-</script>
 
 </body>
 </html>
