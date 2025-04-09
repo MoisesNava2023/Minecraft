@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Corredor Infinito - Minecraft</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #000000; /* Fondo negro */
+            overflow: hidden;
+            font-family: 'Press Start 2P', cursive;
+            color: #dfe6e9;
+            flex-direction: column;
+        }
+        canvas {
+            /* Se quita background-color y border */
+            display: block;
+            max-width: 100%;
+            max-height: 80vh;
+            /* Mantenemos la sombra para dar profundidad si se desea, o quitarla */
+            /* box-shadow: 0 10px 20px rgba(255, 255, 255, 0.1); */ /* Sombra clara opcional */
+        }
+        #controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+        }
+        .control-button {
+            padding: 15px 25px;
+            font-size: 1.5em;
+            font-family: 'Press Start 2P', cursive;
+            cursor: pointer;
+            background: linear-gradient(145deg, #78e08f, #4a69bd); /* Gradiente Minecraft (verde/azul) */
+            color: #ffffff; /* Texto blanco */
+            border: 3px solid #3c40c6; /* Borde azul oscuro */
+            border-radius: 8px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5); /* Sombra de texto */
+        }
+        .control-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        #scoreBoard, #gameOverScreen, #loadingScreen { /* Añadido loadingScreen */
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.5em;
+            background-color: rgba(0, 0, 0, 0.6); /* Fondo negro semi-transparente */
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 10;
+            text-align: center; /* Centrar texto */
+        }
+         #loadingScreen { /* Estilo para pantalla de carga */
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.8em;
+         }
+        #gameOverScreen {
+            top: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            display: none;
+            background-color: rgba(45, 52, 54, 0.9);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+        }
+        #gameOverScreen h2 {
+            margin-bottom: 20px;
+            color: #ff6b6b; /* Rojo Minecraft */
+        }
+        #restartButton {
+            margin-top: 20px;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            font-family: 'Press Start 2P', cursive;
+            cursor: pointer;
+            background: linear-gradient(145deg, #55efc4, #00b894);
+            color: #2d3436;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+        }
+        #restartButton:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Estilos específicos para móviles */
+        @media (max-width: 600px) {
+            #controls {
+                width: 90%;
+                justify-content: space-around;
+            }
+            .control-button {
+                padding: 12px 20px;
+                font-size: 1.2em;
+            }
+            #scoreBoard, #loadingScreen { /* Ajustar tamaño de fuente en móvil */
+                font-size: 1.2em;
+                top: 10px;
+            }
+             #loadingScreen {
+                 font-size: 1.5em;
+             }
+            #gameOverScreen {
+                width: 80%;
+                padding: 30px;
+            }
+            #gameOverScreen h2 {
+                 font-size: 1.8em;
+            }
+            #restartButton {
+                padding: 12px 25px;
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loadingScreen">Cargando recursos...</div> <div id="scoreBoard" style="display: none;">Puntuación: 0</div> <div id="gameOverScreen">
+        <h2>¡Juego Terminado!</h2>
+        <div id="finalScore">Puntuación Final: 0</div>
+        <button id="restartButton">Reiniciar</button>
+    </div>
+    <canvas id="gameCanvas"></canvas>
+    <div id="controls" style="display: none;"> <button class="control-button" id="leftButton">←</button>
+        <button class="control-button" id="jumpButton">↑</button>
+        <button class="control-button" id="rightButton">→</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreBoard = document.getElementById('scoreBoard');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const finalScoreDisplay = document.getElementById('finalScore');
+        const restartButton = document.getElementById('restartButton');
+        const leftButton = document.getElementById('leftButton');
+        const rightButton = document.getElementById('rightButton');
+        const jumpButton = document.getElementById('jumpButton');
+        const loadingScreen = document.getElementById('loadingScreen');
+        const controlsDiv = document.getElementById('controls');
+
+
+        let scaleFactor = 1;
+
+        // --- Game Configuration ---
+        let gameSpeed = 5;
+        const initialGameSpeed = 5;
+        const speedIncreaseFactor = 0.001;
+        const playerWidthBase = 50; // Ajustar tamaño base para imagen
+        const playerHeightBase = 50; // Ajustar tamaño base para imagen
+        const obstacleWidthBase = 50; // Ajustar tamaño base para imagen
+        const obstacleHeightBase = 50; // Ajustar tamaño base para imagen
+        const coinRadiusBase = 15;
+        const gravity = 0.6;
+        const jumpPower = -12;
+        const groundHeightFactor = 0.85;
+        const lanes = 3;
+        let laneWidth;
+
+        // --- Game State ---
+        let player;
+        let obstacles = [];
+        let coins = [];
+        let score = 0;
+        let frameCount = 0;
+        let obstacleSpawnRate = 100;
+        let coinSpawnRate = 60;
+        let isGameOver = false;
+        let animationFrameId;
+        let gameStarted = false; // Para controlar el inicio después de cargar imágenes
+
+        // --- Image Loading ---
+        let imagesLoaded = 0;
+        const totalImages = 4; // Steve + 3 Mobs
+
+        // Placeholder URLs - Replace with actual URLs if possible
+        const steveImageUrl = 'https://placehold.co/50x50/78e08f/000000?text=Steve'; // Placeholder verde
+        const mobImageUrls = [
+            'https://placehold.co/50x50/ff6b6b/000000?text=Creeper', // Placeholder rojo
+            'https://placehold.co/50x50/48dbfb/000000?text=Zombie', // Placeholder azul claro
+            'https://placehold.co/50x50/f1f2f6/000000?text=Skeleton' // Placeholder blanco
+        ];
+
+        const steveImage = new Image();
+        const mobImages = mobImageUrls.map(url => new Image());
+
+        function imageLoaded() {
+            imagesLoaded++;
+            if (imagesLoaded === totalImages) {
+                console.log("Todas las imágenes cargadas.");
+                loadingScreen.style.display = 'none'; // Ocultar pantalla de carga
+                scoreBoard.style.display = 'block'; // Mostrar puntuación
+                controlsDiv.style.display = 'flex'; // Mostrar controles
+                gameStarted = true;
+                resetGame(); // Iniciar el juego ahora que las imágenes están listas
+            } else {
+                 loadingScreen.textContent = `Cargando ${imagesLoaded}/${totalImages}...`;
+            }
+        }
+
+        function loadImage(imageObject, url) {
+            imageObject.onload = imageLoaded;
+            imageObject.onerror = () => {
+                console.error(`Error al cargar imagen: ${url}`);
+                // Podrías intentar cargar una imagen de respaldo o simplemente contarla como cargada para no bloquear
+                imageLoaded(); // Contar como cargada incluso si hay error para no detener el juego
+            };
+            imageObject.src = url;
+        }
+
+        // Iniciar carga de imágenes
+        loadImage(steveImage, steveImageUrl);
+        mobImages.forEach((img, index) => loadImage(img, mobImageUrls[index]));
+
+
+        // --- Player Object ---
+        function createPlayer() {
+            return {
+                x: canvas.width / 2 - (playerWidthBase * scaleFactor) / 2,
+                y: canvas.height * groundHeightFactor - (playerHeightBase * scaleFactor),
+                width: playerWidthBase * scaleFactor,
+                height: playerHeightBase * scaleFactor,
+                velocityY: 0,
+                isJumping: false,
+                lane: 1,
+                targetX: canvas.width / 2 - (playerWidthBase * scaleFactor) / 2,
+                img: steveImage // Asignar la imagen cargada
+            };
+        }
+
+        // --- Obstacle Object ---
+        function createObstacle() {
+            const lane = Math.floor(Math.random() * lanes);
+            const x = lane * laneWidth + (laneWidth / 2) - (obstacleWidthBase * scaleFactor / 2);
+            const mobIndex = Math.floor(Math.random() * mobImages.length); // Elegir un mob al azar
+            return {
+                x: x,
+                y: -obstacleHeightBase * scaleFactor,
+                width: obstacleWidthBase * scaleFactor,
+                height: obstacleHeightBase * scaleFactor,
+                lane: lane,
+                img: mobImages[mobIndex] // Asignar la imagen del mob cargada
+            };
+        }
+
+        // --- Coin Object --- (Sin cambios en la creación, solo en el dibujo si se quiere)
+        function createCoin() {
+            const lane = Math.floor(Math.random() * lanes);
+            const x = lane * laneWidth + (laneWidth / 2);
+            return {
+                x: x,
+                y: -coinRadiusBase * scaleFactor * 2,
+                radius: coinRadiusBase * scaleFactor,
+                lane: lane
+            };
+        }
+
+        // --- Resize Canvas and Recalculate ---
+        function resizeCanvas() {
+            const aspectRatio = 9 / 16;
+            let newWidth = window.innerWidth * 0.9;
+            let newHeight = window.innerHeight * 0.7;
+
+            if (newWidth / newHeight > aspectRatio) {
+                newWidth = newHeight * aspectRatio;
+            } else {
+                newHeight = newWidth / aspectRatio;
+            }
+
+            newWidth = Math.min(newWidth, 600);
+            newHeight = Math.min(newHeight, 800);
+
+            canvas.width = newWidth;
+            canvas.height = newHeight;
+
+            scaleFactor = Math.min(canvas.width / 400, canvas.height / 600);
+            laneWidth = canvas.width / lanes;
+
+            // Solo reiniciar si el juego ya ha comenzado (imágenes cargadas)
+            if (gameStarted) {
+                // Reiniciar el juego al redimensionar para simplificar
+                resetGameOnResize();
+            }
+        }
+
+         // Función separada para reiniciar en resize para evitar bucles infinitos al inicio
+         function resetGameOnResize() {
+            isGameOver = true; // Marcar como game over para detener el bucle actual si está corriendo
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+             // Configurar el estado inicial sin iniciar el bucle inmediatamente
+            score = 0;
+            frameCount = 0;
+            gameSpeed = initialGameSpeed;
+            obstacles = [];
+            coins = [];
+            scoreBoard.textContent = `Puntuación: ${score}`;
+            gameOverScreen.style.display = 'none';
+            scoreBoard.style.display = 'block';
+            controlsDiv.style.display = 'flex';
+            leftButton.disabled = false;
+            rightButton.disabled = false;
+            jumpButton.disabled = false;
+
+            player = createPlayer(); // Crear jugador con nuevas dimensiones
+
+            isGameOver = false; // Quitar el estado de game over
+            gameLoop(); // Reiniciar el bucle
+         }
+
+
+        // --- Input Handling ---
+        function handleKeyDown(e) {
+            if (isGameOver || !gameStarted) return; // No procesar si el juego terminó o no ha empezado
+            switch (e.key) {
+                case 'ArrowLeft':
+                case 'a':
+                    movePlayer(-1);
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                    movePlayer(1);
+                    break;
+                case 'ArrowUp':
+                case ' ':
+                case 'w':
+                    jump();
+                    break;
+            }
+        }
+
+        let touchStartX = null;
+        let touchStartY = null;
+
+        function handleTouchStart(e) {
+            if (isGameOver || !gameStarted) return;
+            e.preventDefault();
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }
+
+        function handleTouchMove(e) {
+             if (isGameOver || !gameStarted || !touchStartX || !touchStartY) return;
+             e.preventDefault();
+
+             const touchEndX = e.touches[0].clientX;
+             const touchEndY = e.touches[0].clientY;
+             const deltaX = touchEndX - touchStartX;
+             const deltaY = touchEndY - touchStartY;
+
+             if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                 if (Math.abs(deltaX) > 30) {
+                     movePlayer(deltaX > 0 ? 1 : -1);
+                     touchStartX = null; touchStartY = null; // Resetear
+                 }
+             } else {
+                 if (Math.abs(deltaY) > 30) {
+                     if (deltaY < 0) jump(); // Swipe up
+                     touchStartX = null; touchStartY = null; // Resetear
+                 }
+             }
+        }
+
+        // --- Player Movement ---
+        function movePlayer(direction) {
+            const targetLane = player.lane + direction;
+            if (targetLane >= 0 && targetLane < lanes) {
+                player.lane = targetLane;
+                player.targetX = player.lane * laneWidth + (laneWidth / 2) - (player.width / 2);
+            }
+        }
+
+        function jump() {
+            if (!player.isJumping) {
+                player.velocityY = jumpPower * (scaleFactor > 1 ? scaleFactor * 0.8 : 1);
+                player.isJumping = true;
+            }
+        }
+
+        // --- Update Game State ---
+        function update() {
+            if (isGameOver || !gameStarted) return;
+
+            frameCount++;
+            gameSpeed += speedIncreaseFactor;
+
+            // --- Update Player ---
+            const moveSpeed = 15 * scaleFactor;
+            if (Math.abs(player.x - player.targetX) > moveSpeed) {
+                 player.x += (player.targetX > player.x ? 1 : -1) * moveSpeed;
+            } else {
+                 player.x = player.targetX;
+            }
+
+            player.velocityY += gravity * (scaleFactor > 1 ? scaleFactor * 0.8 : 1);
+            player.y += player.velocityY;
+
+            const groundY = canvas.height * groundHeightFactor - player.height;
+            if (player.y >= groundY) {
+                player.y = groundY;
+                player.velocityY = 0;
+                player.isJumping = false;
+            }
+
+            // --- Spawn Obstacles ---
+            if (frameCount % Math.floor(obstacleSpawnRate / (gameSpeed / initialGameSpeed)) === 0) {
+                let newObstacle = createObstacle();
+                let canSpawn = true;
+                obstacles.forEach(obs => {
+                    if (obs.lane === newObstacle.lane && obs.y < obs.height * 2) { canSpawn = false; }
+                });
+                coins.forEach(coin => {
+                    if (coin.lane === newObstacle.lane && coin.y < coin.radius * 4) { canSpawn = false; }
+                });
+                if (canSpawn) obstacles.push(newObstacle);
+            }
+
+            // --- Spawn Coins ---
+             if (frameCount % Math.floor(coinSpawnRate / (gameSpeed / initialGameSpeed)) === 0) {
+                let newCoin = createCoin();
+                let canSpawn = true;
+                 obstacles.forEach(obs => {
+                     if (obs.lane === newCoin.lane && obs.y < obs.height * 2) { canSpawn = false; }
+                 });
+                 coins.forEach(coin => {
+                     if (coin.lane === newCoin.lane && coin.y < coin.radius * 4) { canSpawn = false; }
+                 });
+                 if(canSpawn) coins.push(newCoin);
+            }
+
+            // --- Update & Remove Obstacles ---
+            obstacles.forEach((obstacle, index) => {
+                obstacle.y += gameSpeed;
+                if (obstacle.y > canvas.height) {
+                    obstacles.splice(index, 1);
+                }
+                // Collision Detection (Obstacle) - Using existing rectangle logic
+                if (
+                    player.x < obstacle.x + obstacle.width &&
+                    player.x + player.width > obstacle.x &&
+                    player.y < obstacle.y + obstacle.height &&
+                    player.y + player.height > obstacle.y
+                ) {
+                    gameOver();
+                }
+            });
+
+             // --- Update & Remove Coins ---
+            coins.forEach((coin, index) => {
+                coin.y += gameSpeed;
+                if (coin.y - coin.radius > canvas.height) {
+                    coins.splice(index, 1);
+                }
+                // Collision Detection (Coin)
+                const distX = Math.abs(coin.x - (player.x + player.width / 2));
+                const distY = Math.abs(coin.y - (player.y + player.height / 2));
+                if (distX <= (player.width / 2 + coin.radius) && distY <= (player.height / 2 + coin.radius)) {
+                     if (distX <= (player.width / 2) || distY <= (player.height / 2)) {
+                        score += 10;
+                        scoreBoard.textContent = `Puntuación: ${score}`;
+                        coins.splice(index, 1);
+                     }
+                }
+            });
+        }
+
+        // --- Draw Game Elements ---
+        function draw() {
+            if (!gameStarted) return; // No dibujar si no ha empezado
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar suelo (opcional, más oscuro)
+            ctx.fillStyle = '#3b3b3b'; // Un gris oscuro para el suelo
+            ctx.fillRect(0, canvas.height * groundHeightFactor, canvas.width, canvas.height * (1 - groundHeightFactor));
+
+            // Dibujar jugador (imagen)
+            if (player.img.complete) { // Asegurarse que la imagen esté lista (aunque ya esperamos la carga)
+                 ctx.drawImage(player.img, player.x, player.y, player.width, player.height);
+            } else { // Dibujar un placeholder si la imagen falla inesperadamente
+                 ctx.fillStyle = '#78e08f'; // Color placeholder Steve
+                 ctx.fillRect(player.x, player.y, player.width, player.height);
+            }
+
+
+            // Dibujar obstáculos (imágenes)
+            obstacles.forEach(obstacle => {
+                 if (obstacle.img.complete) {
+                    ctx.drawImage(obstacle.img, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                 } else {
+                     ctx.fillStyle = '#ff6b6b'; // Color placeholder mob
+                     ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                 }
+            });
+
+             // Dibujar monedas (sin cambios, pero podrías usar una imagen si quieres)
+            coins.forEach(coin => {
+                ctx.beginPath();
+                ctx.arc(coin.x, coin.y, coin.radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#fdcb6e'; // Amarillo moneda
+                ctx.fill();
+                ctx.closePath();
+                ctx.beginPath();
+                ctx.arc(coin.x, coin.y, coin.radius * 0.8, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.fill();
+                ctx.closePath();
+            });
+        }
+
+        // --- Game Loop ---
+        function gameLoop() {
+            if (isGameOver || !gameStarted) return; // Detener si game over o no iniciado
+            update();
+            draw();
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        // --- Game Over ---
+        function gameOver() {
+            isGameOver = true;
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            finalScoreDisplay.textContent = `Puntuación Final: ${score}`;
+            gameOverScreen.style.display = 'block';
+            scoreBoard.style.display = 'none';
+            controlsDiv.style.display = 'none'; // Ocultar controles en game over
+            leftButton.disabled = true;
+            rightButton.disabled = true;
+            jumpButton.disabled = true;
+        }
+
+        // --- Reset Game ---
+        function resetGame() {
+             if (!gameStarted) return; // No reiniciar si las imágenes no han cargado
+
+            isGameOver = false;
+            score = 0;
+            frameCount = 0;
+            gameSpeed = initialGameSpeed;
+            obstacles = [];
+            coins = [];
+            scoreBoard.textContent = `Puntuación: ${score}`;
+            gameOverScreen.style.display = 'none';
+            scoreBoard.style.display = 'block';
+            controlsDiv.style.display = 'flex'; // Asegurarse que los controles se muestren
+            leftButton.disabled = false;
+            rightButton.disabled = false;
+            jumpButton.disabled = false;
+
+            // Recalcular tamaño y crear jugador (ya se hace en resizeCanvas o al inicio)
+            // Si no se llamó resize justo antes, asegurarse que el jugador se crea/resetea
+             if (!player) { // Si es la primera vez que se llama resetGame (después de cargar)
+                resizeCanvas(); // Llama a resize para establecer tamaños y crear jugador
+             } else { // Si es un reinicio después de game over
+                 player = createPlayer(); // Volver a crear el jugador en su posición inicial
+             }
+
+
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            gameLoop();
+        }
+
+
+        // --- Event Listeners ---
+        window.addEventListener('keydown', handleKeyDown);
+        canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+        canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+        leftButton.addEventListener('click', () => movePlayer(-1));
+        rightButton.addEventListener('click', () => movePlayer(1));
+        jumpButton.addEventListener('click', jump);
+        restartButton.addEventListener('click', resetGame);
+        window.addEventListener('resize', resizeCanvas); // Llama a resizeCanvas, que ahora llama a resetGameOnResize si es necesario
+
+        // --- Initial Setup ---
+        // No iniciar el juego aquí, esperar a que las imágenes carguen.
+        // resizeCanvas() se llama una vez al inicio implícitamente por el flujo
+        // resetGame() se llamará desde imageLoaded() cuando todo esté listo.
+
+    </script>
+
+</body>
+</html>
