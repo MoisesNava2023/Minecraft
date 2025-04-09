@@ -286,6 +286,20 @@
 
 
 
+<button onclick="vibrarBoton()">¡Tócame!</button>
+
+<script>
+function vibrarBoton() {
+  if ("vibrate" in navigator) {
+    navigator.vibrate(100); // Vibra por 100 milisegundos
+  } else {
+    console.log("Este dispositivo no soporta vibración.");
+  }
+}
+</script>
+
+
+
 </body>
 </html>
 
