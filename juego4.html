@@ -6,61 +6,63 @@
     <title>Corredor Infinito - Estilo Minecraft</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        /* CSS Styles remain the same as the previous version */
+        /* CSS Styles remain the same */
         body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-color: #000000; /* Fondo negro */
-            overflow: hidden;
-            font-family: 'Press Start 2P', cursive;
-            color: #dfe6e9;
-            flex-direction: column;
-        }
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: url('Material 4/back 1.png') no-repeat center center;
+    background-size: cover;
+    overflow: hidden;
+    font-family: 'Press Start 2P', cursive;
+    color: #dfe6e9;
+    flex-direction: column;
+}
+
         canvas {
-            display: block;
+            display: block; /* Initially hidden */
             max-width: 100%;
-            max-height: 75vh; /* Un poco menos de altura para dejar espacio a botones */
-            /* background-color: #222; */ /* Optional: Slight background for visibility during debugging */
+            max-height: 75vh;
+            visibility: hidden; /* Hide canvas until game starts */
         }
         #controls {
-            margin-top: 15px; /* Menos margen superior */
-            display: flex;
-            gap: 10px; /* Menos espacio entre botones */
-            align-items: center; /* Alinear botones verticalmente */
+            margin-top: 15px;
+            display: none; /* Initially hidden */
+            gap: 10px;
+            align-items: center;
         }
         .control-button {
-            padding: 12px 20px; /* Ajustar padding */
-            font-size: 1.8em; /* Iconos más grandes */
+            padding: 12px 20px;
+            font-size: 1.8em;
             font-family: 'Press Start 2P', cursive;
             cursor: pointer;
-            background-color: #a0a0a0; /* Gris base Minecraft */
+            background-color: #a0a0a0;
             color: #ffffff;
-            border: 3px solid #505050; /* Borde gris oscuro */
-            border-radius: 4px; /* Esquinas menos redondeadas */
-            box-shadow: inset 0 -4px 0 rgba(0,0,0,0.2); /* Sombra inferior interna */
+            border: 3px solid #505050;
+            border-radius: 4px;
+            box-shadow: inset 0 -4px 0 rgba(0,0,0,0.2);
             transition: background-color 0.1s ease, box-shadow 0.1s ease, transform 0.1s ease;
-            text-shadow: 2px 2px 0px rgba(0,0,0,0.3); /* Sombra de texto */
-            min-width: 60px; /* Ancho mínimo */
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.3);
+            min-width: 60px;
             text-align: center;
-            user-select: none; /* Prevent text selection on buttons */
-            -webkit-user-select: none; /* Safari */
-            -ms-user-select: none; /* IE 10+ */
+            user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
         }
         .control-button:active {
-            background-color: #808080; /* Gris más oscuro al presionar */
-            box-shadow: inset 0 -2px 0 rgba(0,0,0,0.2); /* Sombra cambia al presionar */
-            transform: translateY(2px); /* Efecto de presionado */
+            background-color: #808080;
+            box-shadow: inset 0 -2px 0 rgba(0,0,0,0.2);
+            transform: translateY(2px);
         }
         #skinsButton {
-             font-size: 0.8em; /* Texto más pequeño para "Skins" */
-             padding: 15px 15px; /* Ajustar padding */
+             font-size: 0.8em;
+             padding: 15px 15px;
         }
 
-        #scoreBoard, #gameOverScreen, #loadingScreen, #unlockNotification {
+        #scoreBoard, #gameOverScreen, #loadingScreen, #unlockNotification, #welcomeScreen { /* Added welcomeScreen */
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
@@ -70,54 +72,102 @@
             border-radius: 5px;
             z-index: 10;
             text-align: center;
-            pointer-events: none; /* Allow clicks/touches to pass through score/loading */
+            pointer-events: none; /* Default to none */
         }
-        #scoreBoard { top: 15px; }
-        #loadingScreen { top: 50%; transform: translate(-50%, -50%); font-size: 1.8em;}
+        #scoreBoard { top: 15px; display: none; } /* Initially hidden */
+        #loadingScreen { top: 50%; transform: translate(-50%, -50%); font-size: 1.8em; display: none; } /* Initially hidden */
+        #welcomeScreen { /* Welcome screen styles */
+            top: 50%;
+            transform: translate(-50%, -50%);
+            display: block; /* Visible initially */
+            background-color: rgba(45, 52, 54, 0.9);
+            padding: 30px; /* More padding */
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+            pointer-events: auto; /* Allow interaction */
+            z-index: 110; /* Above everything */
+        }
+         #welcomeScreen h2 {
+             font-size: 1.3em; /* Welcome title size */
+             margin-bottom: 20px;
+             color: #fdcb6e; /* Yellowish color */
+         }
+         #acceptWelcomeButton { /* Style for the accept button */
+             pointer-events: auto;
+             cursor: pointer;
+             margin-top: 20px;
+             /* Reuse control-button styles */
+             padding: 12px 25px;
+             font-size: 1em;
+             font-family: 'Press Start 2P', cursive;
+             background-color: #a0a0a0;
+             color: #ffffff;
+             border: 3px solid #505050;
+             border-radius: 4px;
+             box-shadow: inset 0 -4px 0 rgba(0,0,0,0.2);
+             transition: background-color 0.1s ease, box-shadow 0.1s ease, transform 0.1s ease;
+             text-shadow: 2px 2px 0px rgba(0,0,0,0.3);
+         }
+          #acceptWelcomeButton:active {
+              background-color: #808080;
+              box-shadow: inset 0 -2px 0 rgba(0,0,0,0.2);
+              transform: translateY(2px);
+          }
+
         #gameOverScreen {
             top: 50%;
             transform: translate(-50%, -50%);
             display: none;
             background-color: rgba(45, 52, 54, 0.9);
-            padding: 40px;
+            padding: 25px; /* Reduced padding */
             border-radius: 15px;
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
-            pointer-events: auto; /* Allow interaction with game over screen */
-            z-index: 11; /* Ensure it's above scoreboard */
+            pointer-events: auto;
+            z-index: 11;
         }
+         /* Reduced font size for Game Over text */
+         #gameOverScreen h2 {
+             font-size: 1.5em; /* Smaller title */
+             margin-bottom: 15px;
+             color: #ff6b6b;
+         }
+         #finalScore {
+             font-size: 1em; /* Smaller score text */
+         }
          #unlockNotification {
-             bottom: 80px; /* Posición de la notificación */
-             display: none; /* Oculta inicialmente */
-             background-color: #4CAF50; /* Fondo verde */
+             bottom: 80px;
+             display: none;
+             background-color: #4CAF50;
              color: white;
              padding: 15px;
              border-radius: 8px;
-             z-index: 20; /* Por encima de otros elementos */
+             z-index: 20;
              font-size: 1em;
              pointer-events: none;
          }
-        #restartButton { /* Make sure restart button is interactable */
+        #restartButton {
              pointer-events: auto;
              cursor: pointer;
+             margin-top: 20px; /* Ensure space */
         }
 
         /* --- Modal de Skins --- */
         #skinsModal {
-            display: none; /* Oculto por defecto */
+            display: none;
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 80%;
-            max-width: 400px;
-            background-color: #c6c6c6; /* Fondo gris claro Minecraft UI */
+            width: 85%;
+            max-width: 450px;
+            background-color: #c6c6c6;
             border: 4px solid #505050;
             border-radius: 5px;
             padding: 20px;
             z-index: 100;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             font-family: 'Press Start 2P', cursive;
-            pointer-events: auto; /* Allow interaction */
+            pointer-events: auto;
         }
         #skinsModal h2 {
             text-align: center;
@@ -128,8 +178,8 @@
         }
         #skinsGrid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); /* Rejilla responsiva */
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(75px, 1fr));
+            gap: 12px;
             margin-bottom: 20px;
         }
         .skin-option {
@@ -143,48 +193,47 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100px; /* Altura mínima */
+            min-height: 90px;
             user-select: none;
             -webkit-user-select: none;
             -ms-user-select: none;
         }
         .skin-option img {
             max-width: 80%;
-            max-height: 60px; /* Limitar altura de imagen preview */
+            max-height: 50px;
             display: block;
             margin-bottom: 5px;
-            image-rendering: pixelated; /* Estilo pixel art */
-            pointer-events: none; /* Prevent image dragging issues */
+            image-rendering: pixelated;
+            pointer-events: none;
         }
         .skin-option.selected {
-            border-color: #f0e100; /* Borde dorado para seleccionado */
+            border-color: #f0e100;
             box-shadow: 0 0 10px #f0e100;
         }
         .skin-option.locked {
             cursor: not-allowed;
-            background-color: #707070; /* Más oscuro si está bloqueado */
+            background-color: #707070;
         }
         .skin-option .lock-icon {
             position: absolute;
             top: 5px;
             right: 5px;
-            font-size: 1.5em; /* Tamaño del candado */
+            font-size: 1.3em;
             color: rgba(0,0,0,0.7);
             pointer-events: none;
         }
          .skin-option .unlock-score {
-             font-size: 0.6em;
+             font-size: 0.55em;
              color: #303030;
              text-align: center;
-             margin-top: 5px;
+             margin-top: 3px;
              pointer-events: none;
          }
         #closeSkinsButton {
              display: block;
-             margin: 15px auto 0; /* Centrado y con margen superior */
+             margin: 15px auto 0;
              padding: 10px 20px;
              font-size: 0.8em;
-             /* Estilo similar a .control-button */
              background-color: #a0a0a0;
              color: #ffffff;
              border: 3px solid #505050;
@@ -207,22 +256,31 @@
             #controls { width: 95%; justify-content: space-between;}
             .control-button { padding: 10px 15px; font-size: 1.5em; min-width: 50px;}
             #skinsButton { font-size: 0.6em; padding: 12px 10px;}
-            #scoreBoard, #loadingScreen { font-size: 1.2em; top: 10px; }
+            #scoreBoard, #loadingScreen, #welcomeScreen { font-size: 1.2em; top: 10px; } /* Apply to welcome too */
             #loadingScreen { font-size: 1.5em; }
-            #gameOverScreen { width: 80%; padding: 30px; }
-            #gameOverScreen h2 { font-size: 1.8em; }
+            #welcomeScreen { width: 85%; padding: 25px; }
+            #welcomeScreen h2 { font-size: 1.1em; }
+            #acceptWelcomeButton { font-size: 0.9em; padding: 10px 20px;}
+            #gameOverScreen { width: 80%; padding: 20px; } /* Reduced padding */
+            #gameOverScreen h2 { font-size: 1.3em; } /* Smaller */
+            #finalScore { font-size: 0.9em; } /* Smaller */
             #restartButton { padding: 12px 25px; font-size: 1em; }
              #skinsModal { width: 90%; }
-             #skinsGrid { gap: 10px; }
-             .skin-option img { max-height: 50px; }
+             #skinsGrid { gap: 10px; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));}
+             .skin-option img { max-height: 45px; }
              .skin-option .unlock-score { font-size: 0.5em; }
              #unlockNotification { font-size: 0.9em; bottom: 70px; }
         }
     </style>
 </head>
 <body>
+    <div id="welcomeScreen">
+        <h2>¡Bienvenido!</h2>
+        <p style="font-size:0.7em; margin-bottom: 25px;">Esquiva y recoge premios para desbloquear skins</p>
+        <button id="acceptWelcomeButton">Aceptar</button>
+    </div>
 
-    <div id="loadingScreen">Cargando recursos...</div>
+    <div id="loadingScreen">Cargando recursos... 0%</div>
     <div id="scoreBoard" style="display: none;">Puntuación: 0</div>
     <div id="unlockNotification">¡Nueva skin desbloqueada!</div>
     <div id="gameOverScreen">
@@ -243,6 +301,7 @@
         <button class="control-button" id="skinsButton">Skins</button>
         <button class="control-button" id="rightButton">→</button>
     </div>
+    <button id="closeSkinsButton" onclick="window.location.href='panel.html'">Cerrar</button>
 
     <script>
         // --- DOM Elements ---
@@ -261,6 +320,8 @@
         const skinsGrid = document.getElementById('skinsGrid');
         const closeSkinsButton = document.getElementById('closeSkinsButton');
         const unlockNotification = document.getElementById('unlockNotification');
+        const welcomeScreen = document.getElementById('welcomeScreen');
+        const acceptWelcomeButton = document.getElementById('acceptWelcomeButton');
 
         // --- Game Configuration ---
         let scaleFactor = 1;
@@ -269,10 +330,10 @@
         const speedIncreaseFactor = 0.0005;
         const playerWidthBase = 40;
         const playerHeightBase = 40;
-        const obstacleWidthBase = 40;
-        const obstacleHeightBase = 40;
-        const prizeWidthBase = 30;
-        const prizeHeightBase = 30;
+        const obstacleWidthBase = 50;
+        const obstacleHeightBase = 50;
+        const prizeWidthBase = 40;
+        const prizeHeightBase = 40;
         const groundHeightFactor = 0.90;
         const lanes = 3;
         let laneWidth;
@@ -283,24 +344,36 @@
         let prizes = [];
         let score = 0;
         let frameCount = 0;
-        let obstacleSpawnRate = 120;
-        let prizeSpawnRate = 70;
+        let obstacleSpawnRate = 90; // Can be more frequent now with single spawns
+        let prizeSpawnRate = 60;    // Can be more frequent
         let isGameOver = false;
         let animationFrameId;
         let gameStarted = false;
-        let isPaused = false; // To pause game when modal is open
-        let highestScore = parseInt(localStorage.getItem('highestScore') || '0'); // Ensure number
+        let assetsLoadingInitiated = false;
+        let isPaused = false;
+        let highestScore = parseInt(localStorage.getItem('highestScore') || '0');
+        let backgroundMusicStarted = false;
 
         // --- Asset Paths ---
         const assetPath = 'Material 4/';
+
+        // --- Asset Files ---
+        const backgroundImageFile = 'back5.jpg';
+        const hitSoundFile = 'HIT2.mp3';
+        const coinSoundFile = 'coin.mp3';
+        const unlockSoundFile = 'unlock.mp3';
+        const musicFile = 'music(1).mp3';
 
         // --- Skins Configuration ---
         const skins = [
             { id: 'steve', name: 'Steve', file: 'steve.png', unlockScore: 0, img: new Image() },
             { id: 'alex', name: 'Alex', file: 'skin_alex.png', unlockScore: 50, img: new Image() },
             { id: 'zombie', name: 'Zombie', file: 'skin_zombie.png', unlockScore: 100, img: new Image() },
-            { id: 'enderman', name: 'Enderman', file: 'skin_enderman.png', unlockScore: 200, img: new Image() },
-            { id: 'pig', name: 'Pig', file: 'skin_pig.png', unlockScore: 350, img: new Image() }
+            { id: 'pig', name: 'Pig', file: 'skin_pig.png', unlockScore: 200, img: new Image() },
+            { id: 'enderman', name: 'Enderman', file: 'skin_enderman.png', unlockScore: 350, img: new Image() },
+            { id: 'villager', name: 'Aldeano', file: 'skin_villager.png', unlockScore: 500, img: new Image() },
+            { id: 'iron_golem', name: 'Golem', file: 'skin_iron_golem.png', unlockScore: 700, img: new Image() },
+            { id: 'creeper', name: 'Creeper', file: 'skin_creeper.png', unlockScore: 1000, img: new Image() }
         ];
         let currentSkinIndex = parseInt(localStorage.getItem('currentSkinIndex') || '0');
         let unlockedSkins = JSON.parse(localStorage.getItem('unlockedSkins') || JSON.stringify(skins.map(s => s.unlockScore === 0)));
@@ -310,87 +383,127 @@
             { id: 'creeper', file: 'obstacle_creeper.png', img: new Image() },
             { id: 'zombie', file: 'obstacle_zombie.png', img: new Image() },
             { id: 'skeleton', file: 'obstacle_skeleton.png', img: new Image() },
-            { id: 'spider', file: 'obstacle_spider.png', img: new Image() }
+            { id: 'spider', file: 'obstacle_spider.png', img: new Image() },
+            { id: 'witch', file: 'obstacle_witch.png', img: new Image() },
+            { id: 'slime', file: 'obstacle_slime.png', img: new Image() },
+            { id: 'ghast', file: 'obstacle_ghast.png', img: new Image() }
         ];
 
         // --- Prizes Configuration ---
         const prizeTypes = [
-            { id: 'iron', value: 5, file: 'prize_iron.png', img: new Image() },
-            { id: 'gold', value: 10, file: 'prize_gold.png', img: new Image() },
-            { id: 'diamond', value: 15, file: 'prize_diamond.png', img: new Image() }
+            { id: 'iron', value: 2, file: 'prize_iron.png', img: new Image() },
+            { id: 'gold', value: 3, file: 'prize_gold.png', img: new Image() },
+            { id: 'diamond', value: 5, file: 'prize_diamond.png', img: new Image() }
         ];
 
-        // --- Image Loading ---
-        let imagesLoadedCount = 0;
-        const totalImages = skins.length + obstacleTypes.length + prizeTypes.length;
+        // --- Asset Loading (Images & Audio) ---
+        let assetsLoadedCount = 0;
+        const imageAssets = [
+            ...skins.map(s => ({ obj: s.img, file: s.file })),
+            ...obstacleTypes.map(o => ({ obj: o.img, file: o.file })),
+            ...prizeTypes.map(p => ({ obj: p.img, file: p.file })),
+            { obj: new Image(), file: backgroundImageFile }
+        ];
+        const audioAssets = [
+            { obj: new Audio(), file: hitSoundFile, id: 'hitSound' },
+            { obj: new Audio(), file: coinSoundFile, id: 'coinSound' },
+            { obj: new Audio(), file: unlockSoundFile, id: 'unlockSound' },
+            { obj: new Audio(), file: musicFile, id: 'backgroundMusic' }
+        ];
+        const totalAssets = imageAssets.length + audioAssets.length;
 
-        function imageLoaded() {
-            imagesLoadedCount++;
-            // console.log(`Imagen cargada (${imagesLoadedCount}/${totalImages})`); // DEBUG
-            loadingScreen.textContent = `Cargando ${imagesLoadedCount}/${totalImages}...`;
-            if (imagesLoadedCount === totalImages) {
-                console.log("Todas las imágenes cargadas.");
+        const loadedImages = {};
+        const loadedSounds = {};
+
+        function assetLoaded() {
+            assetsLoadedCount++;
+            const percentage = Math.floor((assetsLoadedCount / totalAssets) * 100);
+            loadingScreen.textContent = `Cargando recursos... ${percentage}%`;
+            if (assetsLoadedCount === totalAssets) {
+                console.log("Todos los assets cargados.");
+                const bgAsset = imageAssets.find(img => img.file === backgroundImageFile);
+                if (bgAsset) loadedImages.background = bgAsset.obj;
+                else console.error("Imagen de fondo no encontrada en imageAssets");
+                audioAssets.forEach(audio => loadedSounds[audio.id] = audio.obj);
+                if (loadedSounds.backgroundMusic) {
+                    loadedSounds.backgroundMusic.loop = true;
+                }
                 loadingScreen.style.display = 'none';
                 scoreBoard.style.display = 'block';
                 controlsDiv.style.display = 'flex';
+                canvas.style.visibility = 'visible';
                 updateSkinsModal();
                 gameStarted = true;
-                // console.log("Iniciando juego..."); // DEBUG
-                resetGame(); // Start the game
+                resetGame();
             }
         }
 
-        function loadImage(imageObject, filename) {
-            // console.log(`Cargando imagen: ${assetPath}${filename}`); // DEBUG
-            imageObject.onload = imageLoaded;
-            imageObject.onerror = () => {
-                console.error(`Error al cargar imagen: ${assetPath}${filename}. Asegúrate que el archivo existe.`);
-                imageObject.failed = true; // Mark as failed
-                imageLoaded(); // Still count as loaded to not block the game
+        function loadAsset(assetObject, filename, isAudio = false) {
+            const path = assetPath + filename;
+            assetObject.onload = assetLoaded;
+            assetObject.onerror = () => {
+                console.error(`Error al cargar asset: ${path}. Asegúrate que el archivo existe.`);
+                assetObject.failed = true;
+                assetLoaded();
             };
-            imageObject.src = assetPath + filename;
+            if (isAudio) {
+                assetObject.oncanplaythrough = () => {
+                    if (!assetObject.hasLoaded) { assetObject.hasLoaded = true; assetLoaded(); }
+                };
+                assetObject.onerror = () => {
+                     if (!assetObject.hasLoaded) { console.error(`Error al cargar audio: ${path}.`); assetObject.failed = true; assetObject.hasLoaded = true; assetLoaded(); }
+                };
+                 assetObject.hasLoaded = false;
+            }
+            assetObject.src = path;
+            if (isAudio) {
+                assetObject.load();
+            }
         }
 
-        // Start loading images
-        skins.forEach(skin => loadImage(skin.img, skin.file));
-        obstacleTypes.forEach(obs => loadImage(obs.img, obs.file));
-        prizeTypes.forEach(prize => loadImage(prize.img, prize.file));
+        function startLoadingAssets() {
+            if (assetsLoadingInitiated) return;
+            assetsLoadingInitiated = true;
+            console.log("Iniciando carga de assets...");
+            imageAssets.forEach(asset => loadAsset(asset.obj, asset.file, false));
+            audioAssets.forEach(asset => loadAsset(asset.obj, asset.file, true));
+        }
 
+        // --- Sound Helper ---
+        function playSound(soundId) {
+            const sound = loadedSounds[soundId];
+            if (sound && !sound.failed) {
+                sound.currentTime = 0;
+                sound.play().catch(e => console.warn(`No se pudo reproducir el sonido ${soundId}:`, e));
+            }
+        }
 
         // --- Player Object ---
         function createPlayer() {
-            // Ensure currentSkinIndex is valid and unlocked
             if (currentSkinIndex < 0 || currentSkinIndex >= skins.length || !unlockedSkins[currentSkinIndex]) {
-                // console.log("Índice de skin inválido o bloqueado, volviendo a Steve."); // DEBUG
-                currentSkinIndex = 0; // Default to Steve
-                localStorage.setItem('currentSkinIndex', currentSkinIndex); // Save corrected index
+                currentSkinIndex = 0;
             }
             const currentSkin = skins[currentSkinIndex];
             const playerY = canvas.height * groundHeightFactor - (playerHeightBase * scaleFactor);
             const initialX = canvas.width / 2 - (playerWidthBase * scaleFactor) / 2;
-            // console.log(`Creando jugador en X:${initialX}, Y:${playerY} con skin ${currentSkin.id}`); // DEBUG
             return {
-                x: initialX,
-                y: playerY,
-                width: playerWidthBase * scaleFactor,
-                height: playerHeightBase * scaleFactor,
-                lane: 1,
-                targetX: initialX, // Start at the initial position
-                img: currentSkin.img,
-                skinId: currentSkin.id
+                x: initialX, y: playerY,
+                width: playerWidthBase * scaleFactor, height: playerHeightBase * scaleFactor,
+                lane: 1, targetX: initialX,
+                img: currentSkin.img, skinId: currentSkin.id
             };
         }
 
-        // --- Obstacle Object ---
+        // --- Obstacle Object (Single Creation) ---
         function createObstacle() {
             const lane = Math.floor(Math.random() * lanes);
             const typeIndex = Math.floor(Math.random() * obstacleTypes.length);
             const type = obstacleTypes[typeIndex];
             const x = lane * laneWidth + (laneWidth / 2) - (obstacleWidthBase * scaleFactor / 2);
-            const y = -(obstacleHeightBase * scaleFactor) * (1 + Math.random());
-            // console.log(`Creando obstáculo tipo ${type.id} en carril ${lane} en Y:${y}`); // DEBUG
+            const y = -(obstacleHeightBase * scaleFactor) * (1 + Math.random() * 0.5); // Start slightly variable Y
             return { x, y, width: obstacleWidthBase * scaleFactor, height: obstacleHeightBase * scaleFactor, lane, img: type.img, type: type.id };
         }
+
 
         // --- Prize Object ---
         function createPrize() {
@@ -399,63 +512,42 @@
             const type = prizeTypes[typeIndex];
             const x = lane * laneWidth + (laneWidth / 2) - (prizeWidthBase * scaleFactor / 2);
             const y = -(prizeHeightBase * scaleFactor) * (1 + Math.random() * 2);
-             // console.log(`Creando premio tipo ${type.id} (valor ${type.value}) en carril ${lane} en Y:${y}`); // DEBUG
             return { x, y, width: prizeWidthBase * scaleFactor, height: prizeHeightBase * scaleFactor, lane, img: type.img, value: type.value, type: type.id };
         }
 
-        // --- Resize Canvas and Recalculate ---
+        // --- Resize Canvas ---
         function resizeCanvas() {
-            // console.log("Redimensionando canvas..."); // DEBUG
             const aspectRatio = 9 / 16;
             let newWidth = window.innerWidth * 0.95;
             let newHeight = window.innerHeight * 0.80;
-
-            // Optional aspect ratio constraint
-            // if (newWidth / newHeight > aspectRatio) newWidth = newHeight * aspectRatio;
-            // else newHeight = newWidth / aspectRatio;
-
             newWidth = Math.min(newWidth, 500);
             newHeight = Math.min(newHeight, 750);
-
             canvas.width = newWidth;
             canvas.height = newHeight;
-
             scaleFactor = Math.min(canvas.width / 350, canvas.height / 550);
             laneWidth = canvas.width / lanes;
-            // console.log(`Nuevo tamaño: ${canvas.width}x${canvas.height}, Factor Escala: ${scaleFactor}, Ancho Carril: ${laneWidth}`); // DEBUG
-
-            // Reset game elements if game has started to adapt to new size
-            if (gameStarted && !isGameOver) { // Only reset if game is running
-                 // console.log("Redimensionando - Reiniciando elementos del juego"); // DEBUG
+            if (gameStarted && !isGameOver) {
                  resetGameOnResize();
-            } else if (player) { // If game hasn't started but player exists (e.g., after game over), update its position
+            } else if (player) {
                  player.y = canvas.height * groundHeightFactor - (playerHeightBase * scaleFactor);
                  player.x = player.lane * laneWidth + (laneWidth / 2) - (player.width / 2);
                  player.targetX = player.x;
-                 // Re-draw immediately if game over screen is shown
                  if (isGameOver) draw();
+                 else if (!gameStarted && welcomeScreen.style.display === 'none') { }
             }
+            if (isPaused && skinsModal.style.display === 'block') { draw(); }
         }
 
          function resetGameOnResize() {
-             // This function is primarily to reset positions and sizes after resize
-             // Avoid resetting score or full game state unless necessary
-             // console.log("resetGameOnResize llamado"); // DEBUG
-             if (!player) return; // Should not happen if gameStarted is true
-
-             // Recalculate player size and position
+             if (!player) return;
              player.width = playerWidthBase * scaleFactor;
              player.height = playerHeightBase * scaleFactor;
              player.y = canvas.height * groundHeightFactor - player.height;
-             // Recalculate targetX based on current lane and new laneWidth
              player.targetX = player.lane * laneWidth + (laneWidth / 2) - (player.width / 2);
-             player.x = player.targetX; // Snap player to new position instantly
-
-             // Recalculate obstacle/prize sizes (optional, could just let them run off)
+             player.x = player.targetX;
              obstacles.forEach(o => {
                  o.width = obstacleWidthBase * scaleFactor;
                  o.height = obstacleHeightBase * scaleFactor;
-                 // Optionally recalculate X based on lane and new laneWidth
                  o.x = o.lane * laneWidth + (laneWidth / 2) - (o.width / 2);
              });
              prizes.forEach(p => {
@@ -463,174 +555,125 @@
                  p.height = prizeHeightBase * scaleFactor;
                  p.x = p.lane * laneWidth + (laneWidth / 2) - (p.width / 2);
              });
-
-             // No need to restart the loop if it's already running
-             // No need to reset score, frameCount, etc.
          }
-
 
         // --- Input Handling ---
         function handleKeyDown(e) {
             if (isGameOver || !gameStarted || isPaused) return;
-            // console.log(`Tecla presionada: ${e.key}`); // DEBUG
             switch (e.key) {
-                case 'ArrowLeft': case 'a':
-                    movePlayer(-1);
-                    break;
-                case 'ArrowRight': case 'd':
-                    movePlayer(1);
-                    break;
+                case 'ArrowLeft': case 'a': movePlayer(-1); break;
+                case 'ArrowRight': case 'd': movePlayer(1); break;
             }
         }
-
         let touchStartX = null;
-        let touchStartY = null;
-
         function handleTouchStart(e) {
-            // Allow touch on buttons even if paused/game over
             const targetIsButton = e.target.classList.contains('control-button') || e.target.id === 'restartButton' || e.target.id === 'closeSkinsButton';
-
-            if (!gameStarted && !targetIsButton) return; // Ignore touches before game starts unless on buttons
-            if (isGameOver && e.target.id !== 'restartButton') return; // Ignore touches in game over unless on restart
-            if (isPaused && !targetIsButton) return; // Ignore touches when paused unless on buttons
-
-            // Process swipes only on the canvas
+            if (!gameStarted && !targetIsButton && e.target.id !== 'acceptWelcomeButton') return;
+            if (isGameOver && e.target.id !== 'restartButton') return;
+            if (isPaused && !targetIsButton) return;
             if (e.target === canvas && !isPaused && !isGameOver) {
                  e.preventDefault();
                  touchStartX = e.touches[0].clientX;
-                 touchStartY = e.touches[0].clientY;
-                 // console.log(`Touch start en canvas: X:${touchStartX}`); // DEBUG
             }
         }
-
         function handleTouchMove(e) {
              if (isGameOver || !gameStarted || !touchStartX || isPaused) return;
              if (e.target !== canvas) return;
-
-             // e.preventDefault(); // Prevent scroll only if swipe detected
-
              const touchEndX = e.touches[0].clientX;
-             // const touchEndY = e.touches[0].clientY; // Not needed currently
              const deltaX = touchEndX - touchStartX;
-             // const deltaY = touchEndY - touchStartY; // Not needed currently
-
-             // Horizontal swipe detection
-             if (Math.abs(deltaX) > 20) { // Swipe threshold
-                 e.preventDefault(); // Prevent scroll once swipe is confirmed
-                 // console.log(`Swipe detectado: deltaX=${deltaX}`); // DEBUG
+             if (Math.abs(deltaX) > 20) {
+                 e.preventDefault();
                  movePlayer(deltaX > 0 ? 1 : -1);
-                 touchStartX = null; // Reset after detecting swipe
-                 touchStartY = null;
+                 touchStartX = null;
              }
         }
 
         // --- Player Movement ---
         function movePlayer(direction) {
-            if (!player) return; // Safety check
+            if (!player || isPaused || isGameOver) return;
+            if (!backgroundMusicStarted && loadedSounds.backgroundMusic && !loadedSounds.backgroundMusic.failed) {
+                loadedSounds.backgroundMusic.play().then(() => { backgroundMusicStarted = true; }).catch(e => console.warn("No se pudo iniciar la música de fondo:", e));
+            }
             const targetLane = player.lane + direction;
-            // console.log(`Moviendo jugador: Carril actual ${player.lane}, Dirección ${direction}, Carril objetivo ${targetLane}`); // DEBUG
-
             if (targetLane >= 0 && targetLane < lanes) {
                 player.lane = targetLane;
-                // Recalculate targetX based on the new lane
                 player.targetX = player.lane * laneWidth + (laneWidth / 2) - (player.width / 2);
-                 // console.log(`Nuevo targetX: ${player.targetX}`); // DEBUG
-            } else {
-                // console.log("Movimiento fuera de los límites del carril ignorado."); // DEBUG
             }
         }
 
         // --- Update Game State ---
         function update() {
-            if (isGameOver || !gameStarted || isPaused) {
-                // if (isPaused) console.log("Juego pausado"); // DEBUG
-                return; // Don't update if game over, not started, or paused
-            }
+            if (isGameOver || !gameStarted || isPaused) return;
 
-            // console.log("Actualizando frame..."); // DEBUG (Puede ser muy verboso)
             frameCount++;
             gameSpeed += speedIncreaseFactor;
-            obstacleSpawnRate = Math.max(40, 120 - score * 0.1);
-            prizeSpawnRate = Math.max(30, 70 - score * 0.05);
+            // Adjust spawn rates if needed for single obstacles
+            obstacleSpawnRate = Math.max(40, 90 - score * 0.08); // Spawn single obstacles more frequently
+            prizeSpawnRate = Math.max(25, 60 - score * 0.05); // Spawn prizes more frequently
 
-            // --- Update Player ---
+            // Update Player
             if (player) {
                 const moveSpeed = 12 * scaleFactor;
-                // Smoothly move player towards targetX
-                if (Math.abs(player.x - player.targetX) > moveSpeed / 2) { // Use smaller threshold for snapping
+                if (Math.abs(player.x - player.targetX) > moveSpeed / 2) {
                     player.x += (player.targetX > player.x ? 1 : -1) * moveSpeed;
                 } else if (player.x !== player.targetX) {
-                    player.x = player.targetX; // Snap to target when close
-                    // console.log(`Jugador llegó a targetX: ${player.targetX}`); // DEBUG
+                    player.x = player.targetX;
                 }
-                // Ensure Y position is correct (might change slightly due to scaleFactor changes on resize)
                 player.y = canvas.height * groundHeightFactor - player.height;
-                // console.log(`Player pos: X=${player.x.toFixed(2)}, Y=${player.y.toFixed(2)}, TargetX=${player.targetX.toFixed(2)}`); // DEBUG (Verbose)
             }
 
-
-            // --- Spawn Obstacles ---
+            // --- Spawn Obstacle (Single) --- Changed from Pairs
             if (frameCount % Math.floor(obstacleSpawnRate / (gameSpeed / initialGameSpeed)) === 0) {
-                let newObstacle = createObstacle();
+                let newObstacle = createObstacle(); // Create a single obstacle
                 let canSpawn = true;
+                // Check proximity to existing obstacles and prizes
                 obstacles.forEach(obs => { if (obs.lane === newObstacle.lane && obs.y < obs.height * 2.5) canSpawn = false; });
-                prizes.forEach(p => { if (p.lane === newObstacle.lane && p.y < p.height * 3) canSpawn = false; });
-                if (canSpawn) obstacles.push(newObstacle);
-                // else console.log("Spawn de obstáculo bloqueado (muy cerca de otro)"); // DEBUG
+                 prizes.forEach(p => { if (p.lane === newObstacle.lane && p.y < p.height * 3) canSpawn = false; });
+
+                if (canSpawn) {
+                    obstacles.push(newObstacle); // Add the single obstacle
+                }
             }
 
-            // --- Spawn Prizes ---
+            // Spawn Prizes (Remains the same)
              if (frameCount % Math.floor(prizeSpawnRate / (gameSpeed / initialGameSpeed)) === 0) {
                 let newPrize = createPrize();
                 let canSpawn = true;
                 obstacles.forEach(obs => { if (obs.lane === newPrize.lane && obs.y < obs.height * 2.5) canSpawn = false; });
                 prizes.forEach(p => { if (p.lane === newPrize.lane && p.y < p.height * 3) canSpawn = false; });
                 if (canSpawn) prizes.push(newPrize);
-                // else console.log("Spawn de premio bloqueado (muy cerca de otro)"); // DEBUG
             }
 
-            // --- Update & Remove Obstacles ---
+            // Update & Remove Obstacles
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 const obstacle = obstacles[i];
                 obstacle.y += gameSpeed;
                 if (obstacle.y > canvas.height) {
                     obstacles.splice(i, 1);
-                    // console.log("Obstáculo eliminado (fuera de pantalla)"); // DEBUG
-                } else if (player) { // Check collision only if player exists
-                    // Collision Detection (Obstacle)
-                    if (
-                        player.x < obstacle.x + obstacle.width &&
-                        player.x + player.width > obstacle.x &&
-                        player.y < obstacle.y + obstacle.height &&
-                        player.y + player.height > obstacle.y
-                    ) {
-                         console.log("¡Colisión con obstáculo!"); // DEBUG
+                } else if (player) {
+                    if ( player.x < obstacle.x + obstacle.width && player.x + player.width > obstacle.x &&
+                         player.y < obstacle.y + obstacle.height && player.y + player.height > obstacle.y ) {
+                         playSound('hitSound');
                          gameOver();
-                         return; // Stop update immediately on game over
+                         return;
                     }
                 }
             }
 
-             // --- Update & Remove Prizes ---
+             // Update & Remove Prizes
              for (let i = prizes.length - 1; i >= 0; i--) {
                 const prize = prizes[i];
                 prize.y += gameSpeed;
                 if (prize.y > canvas.height) {
                     prizes.splice(i, 1);
-                    // console.log("Premio eliminado (fuera de pantalla)"); // DEBUG
-                } else if (player) { // Check collision only if player exists
-                    // Collision Detection (Prize)
-                    if (
-                        player.x < prize.x + prize.width &&
-                        player.x + player.width > prize.x &&
-                        player.y < prize.y + prize.height &&
-                        player.y + player.height > prize.y
-                    ) {
-                        // console.log(`Premio recolectado: ${prize.type} (Valor: ${prize.value})`); // DEBUG
+                } else if (player) {
+                    if ( player.x < prize.x + prize.width && player.x + player.width > prize.x &&
+                         player.y < prize.y + prize.height && player.y + player.height > prize.y ) {
                         score += prize.value;
                         scoreBoard.textContent = `Puntuación: ${score}`;
+                        playSound('coinSound');
                         checkSkinUnlocks(score);
-                        prizes.splice(i, 1); // Remove prize
+                        prizes.splice(i, 1);
                     }
                 }
             }
@@ -638,141 +681,93 @@
 
         // --- Draw Game Elements ---
         function draw() {
-            // console.log("Dibujando frame..."); // DEBUG (Muy verboso)
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas first
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-             // Draw ground only if game is running or over (not during loading)
-            if(gameStarted) {
-                ctx.fillStyle = '#3b3b3b'; // Dark grey ground
-                ctx.fillRect(0, canvas.height * groundHeightFactor, canvas.width, canvas.height * (1 - groundHeightFactor));
-            }
+            // Draw Background Image (Cover Logic)
+            const img = loadedImages.background;
+            if (img && img.complete && !img.failed && img.naturalWidth > 0) {
+                const canvasAspect = canvas.width / canvas.height;
+                const imgAspect = img.naturalWidth / img.naturalHeight;
+                let drawWidth, drawHeight, xOffset, yOffset;
+                if (canvasAspect > imgAspect) {
+                    drawWidth = canvas.width; drawHeight = drawWidth / imgAspect; xOffset = 0; yOffset = (canvas.height - drawHeight) / 2;
+                } else {
+                    drawHeight = canvas.height; drawWidth = drawHeight * imgAspect; xOffset = (canvas.width - drawWidth) / 2; yOffset = 0;
+                }
+                try { ctx.drawImage(img, xOffset, yOffset, drawWidth, drawHeight); }
+                catch (e) { console.error("Error al dibujar fondo:", e); drawFallbackBackground(); }
+            } else { drawFallbackBackground(); }
 
-            // --- Draw Player ---
-            if (player && player.img && !isGameOver) { // Only draw if player exists and game not over
+            // Draw Player
+            if (player && player.img && !isGameOver) {
                  try {
-                     if (player.img.complete && !player.img.failed) {
-                         ctx.imageSmoothingEnabled = false; // Pixelated style
-                         ctx.drawImage(player.img, player.x, player.y, player.width, player.height);
-                     } else if (player.img.failed) { // Draw placeholder if image failed to load
-                         ctx.fillStyle = '#78e08f'; // Green placeholder
-                         ctx.fillRect(player.x, player.y, player.width, player.height);
-                     }
-                     // else: Image might still be loading, draw nothing or a loading indicator
-                 } catch (e) {
-                     console.error("Error al dibujar jugador:", e);
-                     // Draw placeholder on error
-                     ctx.fillStyle = '#78e08f';
-                     ctx.fillRect(player.x, player.y, player.width, player.height);
-                 }
+                     if (player.img.complete && !player.img.failed) { ctx.imageSmoothingEnabled = false; ctx.drawImage(player.img, player.x, player.y, player.width, player.height); }
+                     else if (player.img.failed) { drawFallbackRect(player.x, player.y, player.width, player.height, '#78e08f'); }
+                 } catch (e) { console.error("Error al dibujar jugador:", e); drawFallbackRect(player.x, player.y, player.width, player.height, '#78e08f'); }
             }
 
-            // --- Draw Obstacles ---
+            // Draw Obstacles
             obstacles.forEach(obstacle => {
                 if (obstacle.img) {
                      try {
-                         if (obstacle.img.complete && !obstacle.img.failed) {
-                             ctx.imageSmoothingEnabled = false;
-                             ctx.drawImage(obstacle.img, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-                         } else if (obstacle.img.failed) {
-                             ctx.fillStyle = '#ff6b6b'; // Red placeholder
-                             ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-                         }
-                     } catch (e) {
-                         console.error("Error al dibujar obstáculo:", e);
-                         ctx.fillStyle = '#ff6b6b';
-                         ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-                     }
+                         if (obstacle.img.complete && !obstacle.img.failed) { ctx.imageSmoothingEnabled = false; ctx.drawImage(obstacle.img, obstacle.x, obstacle.y, obstacle.width, obstacle.height); }
+                         else if (obstacle.img.failed) { drawFallbackRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height, '#ff6b6b'); }
+                     } catch (e) { console.error("Error al dibujar obstáculo:", e); drawFallbackRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height, '#ff6b6b'); }
                 }
             });
 
-             // --- Draw Prizes ---
+             // Draw Prizes
             prizes.forEach(prize => {
                 if (prize.img) {
                      try {
-                         if (prize.img.complete && !prize.img.failed) {
-                             ctx.imageSmoothingEnabled = false;
-                             ctx.drawImage(prize.img, prize.x, prize.y, prize.width, prize.height);
-                         } else if (prize.img.failed) {
-                             ctx.fillStyle = '#fdcb6e'; // Yellow placeholder
-                             ctx.fillRect(prize.x, prize.y, prize.width, prize.height);
-                         }
-                     } catch (e) {
-                         console.error("Error al dibujar premio:", e);
-                         ctx.fillStyle = '#fdcb6e';
-                         ctx.fillRect(prize.x, prize.y, prize.width, prize.height);
-                     }
+                         if (prize.img.complete && !prize.img.failed) { ctx.imageSmoothingEnabled = false; ctx.drawImage(prize.img, prize.x, prize.y, prize.width, prize.height); }
+                         else if (prize.img.failed) { drawFallbackRect(prize.x, prize.y, prize.width, prize.height, '#fdcb6e'); }
+                     } catch (e) { console.error("Error al dibujar premio:", e); drawFallbackRect(prize.x, prize.y, prize.width, prize.height, '#fdcb6e'); }
                 }
             });
         }
 
+        function drawFallbackBackground() { ctx.fillStyle = '#2c3e50'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+        function drawFallbackRect(x, y, w, h, color) { ctx.fillStyle = color; ctx.fillRect(x, y, w, h); }
+
         // --- Game Loop ---
         function gameLoop() {
-            if (isGameOver) { // Ensure loop stops if game over flag is set
-                 // console.log("Game loop detenido (Game Over)"); // DEBUG
-                 return;
-            }
-            // console.log("Game loop tick"); // DEBUG (Verbose)
-            update(); // Update game state first
-            draw();   // Then draw the new state
-            animationFrameId = requestAnimationFrame(gameLoop); // Request next frame
+            if (isGameOver) return;
+            update();
+            draw();
+            animationFrameId = requestAnimationFrame(gameLoop);
         }
 
         // --- Game Over ---
         function gameOver() {
-            // console.log("GAME OVER activado"); // DEBUG
             isGameOver = true;
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId); // Stop the animation loop
-                animationFrameId = null; // Clear the ID
-            }
-
-            if (score > highestScore) {
-                highestScore = score;
-                localStorage.setItem('highestScore', highestScore.toString());
-            }
+            if (animationFrameId) { cancelAnimationFrame(animationFrameId); animationFrameId = null; }
+            if (backgroundMusicStarted && loadedSounds.backgroundMusic) { loadedSounds.backgroundMusic.pause(); }
+            if (score > highestScore) { highestScore = score; localStorage.setItem('highestScore', highestScore.toString()); }
             finalScoreDisplay.textContent = `Puntuación Final: ${score} (Máx: ${highestScore})`;
-
             gameOverScreen.style.display = 'block';
             scoreBoard.style.display = 'none';
             controlsDiv.style.display = 'none';
-            leftButton.disabled = true;
-            rightButton.disabled = true;
-            skinsButton.disabled = true;
+            leftButton.disabled = true; rightButton.disabled = true; skinsButton.disabled = true;
         }
 
         // --- Reset Game ---
         function resetGame() {
-             console.log("Reiniciando juego..."); // DEBUG
-             if (!gameStarted) {
-                 console.log("Intento de reinicio antes de que el juego comenzara."); // DEBUG
-                 return; // Don't reset if images haven't loaded
-             }
-
-            isGameOver = false;
-            isPaused = false; // Ensure not paused
-            score = 0;
-            frameCount = 0;
-            gameSpeed = initialGameSpeed;
-            obstacles = [];
-            prizes = [];
-            scoreBoard.textContent = `Puntuación: ${score}`;
-            gameOverScreen.style.display = 'none'; // Hide game over screen
-            scoreBoard.style.display = 'block';   // Show score board
-            controlsDiv.style.display = 'flex';    // Show controls
-            leftButton.disabled = false;
-            rightButton.disabled = false;
-            skinsButton.disabled = false;
-
-            // Create the player object (this also sets initial position)
-            player = createPlayer();
-
-            // Clear any existing animation frame request before starting a new one
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-                animationFrameId = null;
-            }
-            // console.log("Iniciando game loop desde resetGame..."); // DEBUG
-            gameLoop(); // Start the game loop
+             if (!gameStarted) return;
+             isGameOver = false; isPaused = false; score = 0; frameCount = 0;
+             gameSpeed = initialGameSpeed; obstacles = []; prizes = [];
+             scoreBoard.textContent = `Puntuación: ${score}`;
+             gameOverScreen.style.display = 'none';
+             scoreBoard.style.display = 'block';
+             controlsDiv.style.display = 'flex';
+             leftButton.disabled = false; rightButton.disabled = false; skinsButton.disabled = false;
+             player = createPlayer();
+             if (backgroundMusicStarted && loadedSounds.backgroundMusic && !loadedSounds.backgroundMusic.failed) {
+                 loadedSounds.backgroundMusic.currentTime = 0;
+                 loadedSounds.backgroundMusic.play().catch(e => console.warn("No se pudo reiniciar la música:", e));
+             } else { backgroundMusicStarted = false; }
+             if (animationFrameId) cancelAnimationFrame(animationFrameId);
+             gameLoop();
         }
 
         // --- Skin Unlock Logic ---
@@ -780,16 +775,11 @@
             let newUnlock = false;
             skins.forEach((skin, index) => {
                 if (!unlockedSkins[index] && currentScore >= skin.unlockScore) {
-                    unlockedSkins[index] = true;
-                    newUnlock = true;
-                    console.log(`Skin desbloqueada: ${skin.name} (Score: ${currentScore})`); // DEBUG
-                    showUnlockNotification(skin.name);
+                    unlockedSkins[index] = true; newUnlock = true;
+                    playSound('unlockSound'); showUnlockNotification(skin.name);
                 }
             });
-            if (newUnlock) {
-                localStorage.setItem('unlockedSkins', JSON.stringify(unlockedSkins));
-                updateSkinsModal(); // Update modal display immediately
-            }
+            if (newUnlock) { localStorage.setItem('unlockedSkins', JSON.stringify(unlockedSkins)); updateSkinsModal(); }
         }
 
         // --- Unlock Notification ---
@@ -798,102 +788,75 @@
             unlockNotification.textContent = `¡${skinName} desbloqueado!`;
             unlockNotification.style.display = 'block';
             clearTimeout(notificationTimeout);
-            notificationTimeout = setTimeout(() => {
-                unlockNotification.style.display = 'none';
-            }, 3000);
+            notificationTimeout = setTimeout(() => { unlockNotification.style.display = 'none'; }, 3000);
         }
-
 
         // --- Skins Modal Logic ---
         function openSkinsModal() {
-            // console.log("Abriendo modal de skins"); // DEBUG
             if (isGameOver) return;
-            isPaused = true; // Pause the game
+            isPaused = true;
+            if (backgroundMusicStarted && loadedSounds.backgroundMusic) { loadedSounds.backgroundMusic.pause(); }
             skinsModal.style.display = 'block';
-            updateSkinsModal(); // Ensure it's up-to-date when opened
+            updateSkinsModal();
         }
-
         function closeSkinsModal() {
-             // console.log("Cerrando modal de skins"); // DEBUG
             skinsModal.style.display = 'none';
-            isPaused = false; // Resume the game
-            // No need to restart loop here, it continues if !isPaused
+            isPaused = false;
+             if (backgroundMusicStarted && loadedSounds.backgroundMusic && !isGameOver) {
+                 loadedSounds.backgroundMusic.play().catch(e => console.warn("No se pudo reanudar la música:", e));
+             }
         }
-
         function updateSkinsModal() {
-            // console.log("Actualizando modal de skins"); // DEBUG
-            skinsGrid.innerHTML = ''; // Clear previous options
+            skinsGrid.innerHTML = '';
             skins.forEach((skin, index) => {
-                const isUnlocked = unlockedSkins[index];
-                const isSelected = index === currentSkinIndex;
-
+                const isUnlocked = unlockedSkins[index]; const isSelected = index === currentSkinIndex;
                 const skinDiv = document.createElement('div');
                 skinDiv.classList.add('skin-option');
                 if (isSelected) skinDiv.classList.add('selected');
                 if (!isUnlocked) skinDiv.classList.add('locked');
-
                 const imgElement = new Image();
-                 if (skin.img && (skin.img.complete || !skin.img.failed)) {
-                    imgElement.src = skin.img.src;
-                 } else {
-                     imgElement.alt = skin.name; // Show name if image failed
-                 }
+                 if (skin.img && (skin.img.complete || !skin.img.failed)) { imgElement.src = skin.img.src; }
+                 else { imgElement.alt = skin.name; }
                  imgElement.style.imageRendering = 'pixelated';
                  skinDiv.appendChild(imgElement);
-
                 if (!isUnlocked) {
-                    const lockIcon = document.createElement('span');
-                    lockIcon.classList.add('lock-icon');
-                    lockIcon.textContent = '🔒';
-                    skinDiv.appendChild(lockIcon);
-                    const unlockText = document.createElement('span');
-                    unlockText.classList.add('unlock-score');
-                    unlockText.textContent = `Pts: ${skin.unlockScore}`;
-                    skinDiv.appendChild(unlockText);
-                } else {
-                    // Add click listener only if unlocked
-                    skinDiv.onclick = () => selectSkin(index);
-                }
+                    const lockIcon = document.createElement('span'); lockIcon.classList.add('lock-icon'); lockIcon.textContent = '🔒'; skinDiv.appendChild(lockIcon);
+                    const unlockText = document.createElement('span'); unlockText.classList.add('unlock-score'); unlockText.textContent = `Pts: ${skin.unlockScore}`; skinDiv.appendChild(unlockText);
+                } else { skinDiv.onclick = () => selectSkin(index); }
                 skinsGrid.appendChild(skinDiv);
             });
         }
-
         function selectSkin(index) {
             if (unlockedSkins[index]) {
-                // console.log(`Seleccionando skin: ${skins[index].name} (índice ${index})`); // DEBUG
-                currentSkinIndex = index;
-                localStorage.setItem('currentSkinIndex', currentSkinIndex.toString());
-                // Update player image only if player object exists
-                if (player) {
-                    player.img = skins[currentSkinIndex].img;
-                    player.skinId = skins[currentSkinIndex].id;
-                }
-                updateSkinsModal(); // Update visual selection in modal
-            } else {
-                 // console.log(`Intento de seleccionar skin bloqueada: ${skins[index].name}`); // DEBUG
+                currentSkinIndex = index; localStorage.setItem('currentSkinIndex', currentSkinIndex.toString());
+                if (player) { player.img = skins[currentSkinIndex].img; player.skinId = skins[currentSkinIndex].id; }
+                updateSkinsModal();
             }
         }
 
         // --- Event Listeners ---
         window.addEventListener('keydown', handleKeyDown);
-        // Use 'click' for buttons for better reliability across devices than touchstart
         leftButton.addEventListener('click', () => movePlayer(-1));
         rightButton.addEventListener('click', () => movePlayer(1));
         skinsButton.addEventListener('click', openSkinsModal);
         closeSkinsButton.addEventListener('click', closeSkinsModal);
         restartButton.addEventListener('click', resetGame);
-        // Touch listeners for swipe on canvas
         canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
         canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-        // Resize listener
         window.addEventListener('resize', resizeCanvas);
+        acceptWelcomeButton.addEventListener('click', () => {
+            welcomeScreen.style.display = 'none';
+            loadingScreen.style.display = 'block';
+            startLoadingAssets();
+        });
 
         // --- Initial Setup ---
-        resizeCanvas(); // Initial sizing based on window
+        resizeCanvas();
 
     </script>
 
 </body>
 </html>
+
 
 
