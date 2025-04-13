@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Juego de Peleas 1P vs CPU</title>
+    <style>
+        /* Estilos Generales */
+        body {
+            margin: 0; font-family: sans-serif; background-color: #222; color: #eee;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; overflow: hidden; -webkit-user-select: none; -ms-user-select: none; user-select: none;
+        }
+        .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 1024px; padding: 15px; box-sizing: border-box; }
+        .screen.active { display: flex; }
+        h1, h2 { text-align: center; color: #ffa500; margin-bottom: 15px; }
+        button { /* Botones generales (Start) */
+            padding: 10px 15px; font-size: 1.1em; cursor: pointer; background-color: #4CAF50;
+            color: white; border: none; border-radius: 5px; margin: 5px;
+            transition: background-color 0.3s ease; touch-action: manipulation;
+        }
+        button:disabled { background-color: #555; cursor: not-allowed; }
+        button:hover:not(:disabled) { background-color: #45a049; }
+        button:active:not(:disabled) { background-color: #3e8e41; }
+
+        /* Pantalla de Selección */
+        #character-select-screen { background-color: #333; border-radius: 10px; box-shadow: 0 0 15px rgba(0, 0, 0, 0.5); padding-bottom: 20px; width: 95%; }
+        .selection-container { display: flex; flex-direction: column; align-items: center; width: 100%; } /* Flex column */
+        .player-selection { display: flex; justify-content: center; width: 100%; margin-top: 10px; flex-wrap: wrap; } /* Centered player box */
+        .player-box { background-color: #444; padding: 15px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center; margin-bottom: 15px; }
+        .character-options { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-bottom: 10px; min-height: 50px; }
+        .char-button {
+            padding: 15px; border: 3px solid #666; background-color: #505050; color: #fff; cursor: pointer;
+            border-radius: 8px; min-width: 100px; text-align: center; transition: all 0.2s ease;
+            font-weight: bold; display: flex; flex-direction: column; align-items: center; gap: 5px;
+        }
+        .char-button img { /* Estilo para imagen miniatura */
+             width: 60px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #333;
+        }
+        .char-button:hover { background-color: #6a6a6a; border-color: #aaa; }
+        .char-button.selected { background-color: #ffa500; color: #000; border-color: #fff; transform: scale(1.05); }
+        #p1-selected { font-weight: bold; color: #ffcc00; min-height: 1.2em; display: inline-block; margin-top: 5px; }
+
+        /* --- NUEVO: Selección de Dificultad --- */
+        .difficulty-selection { margin-top: 15px; background-color: #444; padding: 15px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center; }
+        .difficulty-selection h2 { margin-bottom: 10px; }
+        .difficulty-options { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+        .difficulty-button { /* Estilo similar a char-button pero diferente color */
+            padding: 10px 20px; border: 2px solid #666; background-color: #3a5fcd; /* Azul */ color: #fff;
+            cursor: pointer; border-radius: 5px; min-width: 80px; text-align: center;
+            transition: background-color 0.3s, border-color 0.3s; font-weight: bold;
+        }
+        .difficulty-button:hover { background-color: #4e7aef; border-color: #aaa; }
+        .difficulty-button.selected { background-color: #1e90ff; /* Azul más brillante */ border-color: #fff; }
+        /* --- FIN Selección de Dificultad --- */
+
+        #start-game-button { margin-top: 20px; }
+
+        /* Pantalla del Juego */
+        #game-container { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 1024px; }
+        #game-screen { position: relative; width: 100%; height: 576px; margin-bottom: 10px; }
+        canvas#game-canvas { display: block; background-color: #505050; border: 3px solid #000; width: 100%; height: 100%; box-sizing: border-box; }
+        .hud { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; align-items: center; pointer-events: none; z-index: 10; }
+        .health-bar-container { width: 38%; position: relative; height: 25px; background-color: rgba(0, 0, 0, 0.4); border-radius: 5px; overflow: hidden; border: 2px solid black; }
+        .health-bar-background { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: red; }
+        .health-bar-foreground { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #4CAF50; transition: width 0.2s linear; }
+        .health-bar-container.player2 .health-bar-foreground { left: auto; right: 0; }
+        .health-bar-container.player2 .health-bar-background { left: auto; right: 0; }
+        .player-name { position: absolute; top: 50%; transform: translateY(-50%); color: white; font-size: 0.9em; font-weight: bold; text-shadow: 1px 1px 2px black; padding: 0 8px; }
+        .health-bar-container.player1 .player-name { left: 5px; }
+        .health-bar-container.player2 .player-name { right: 5px; }
+        #timer { font-size: 1.8em; color: yellow; font-weight: bold; text-shadow: 2px 2px 3px black; background-color: rgba(0, 0, 0, 0.6); padding: 3px 12px; border-radius: 5px; }
+        .result-message { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: yellow; font-size: 3.5em; font-weight: bold; text-shadow: 3px 3px 5px black; background-color: rgba(0, 0, 0, 0.75); padding: 15px 30px; border-radius: 10px; display: none; text-align: center; z-index: 20; }
+
+        /* Controles en Pantalla (Solo P1 y más grandes) */
+        #mobile-controls {
+            display: flex;
+            justify-content: center; /* Centrar controles de P1 */
+            width: 100%;
+            max-width: 1024px;
+            padding: 10px 5px;
+            box-sizing: border-box;
+            background-color: rgba(50, 50, 50, 0.8);
+            border-radius: 8px;
+            margin-top: 5px;
+        }
+        .control-group { display: flex; flex-direction: column; align-items: center; margin: 0 10px; }
+        .movement-controls, .action-controls { display: flex; justify-content: center; margin-bottom: 5px; }
+        .control-button { /* *** CAMBIO: Botones más grandes *** */
+            background-color: #666; color: white; border: 2px solid #444; border-radius: 50%;
+            width: 70px; /* Era 55px */
+            height: 70px; /* Era 55px */
+            font-size: 1.8em; /* Era 1.5em */
+            font-weight: bold; margin: 5px; /* Era 3px */
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 4px #333; /* Sombra ajustada */
+            transition: background-color 0.1s ease, transform 0.1s ease, box-shadow 0.1s ease;
+            touch-action: manipulation;
+        }
+        .control-button:active { background-color: #888; transform: translateY(3px); box-shadow: 0 1px #333; }
+        .action-button { background-color: #b33434; border-color: #802020; box-shadow: 0 4px #601010; }
+        .action-button:active { background-color: #d94f4f; box-shadow: 0 1px #601010; }
+        .block-button { background-color: #346bb3; border-color: #204d80; box-shadow: 0 4px #103060; }
+        .block-button:active { background-color: #4f8dd9; box-shadow: 0 1px #103060; }
+        .arrow-up::before { content: '↑'; } .arrow-left::before { content: '←'; } .arrow-right::before { content: '→'; }
+        .attack-icon::before { content: '⚔'; font-size: 1.2em; }
+        .block-icon::before { content: '⛨'; font-size: 1.2em; }
+
+    </style>
+</head>
+<body>
+
+    <div id="character-select-screen" class="screen active">
+        <div class="selection-container">
+            <div class="player-box">
+                <h2>Elige tu Luchador</h2>
+                <div id="p1-options" class="character-options">
+                    </div>
+                <p>Seleccionado: <span id="p1-selected">- Ninguno -</span></p>
+            </div>
+
+            <div class="difficulty-selection">
+                <h2>Elige la Dificultad de la CPU</h2>
+                <div id="difficulty-options" class="difficulty-options">
+                    <button class="difficulty-button" data-difficulty="easy">Fácil</button>
+                    <button class="difficulty-button" data-difficulty="medium">Medio</button>
+                    <button class="difficulty-button" data-difficulty="hard">Difícil</button>
+                </div>
+            </div>
+        </div>
+        <button id="start-game-button" disabled>¡Comenzar Pelea!</button>
+    </div>
+
+    <div id="game-container" class="screen">
+        <div id="game-screen">
+            <div class="hud">
+                <div class="health-bar-container player1">
+                    <div class="health-bar-background"></div>
+                    <div id="p1-health" class="health-bar-foreground"></div>
+                    <span id="p1-name" class="player-name">JUGADOR</span> </div>
+                <div id="timer">60</div>
+                 <div class="health-bar-container player2">
+                    <div class="health-bar-background"></div>
+                    <div id="p2-health" class="health-bar-foreground"></div>
+                     <span id="p2-name" class="player-name">CPU</span> </div>
+            </div>
+            <canvas id="game-canvas"></canvas>
+             <div id="result-message" class="result-message"></div>
+        </div>
+
+        <div id="mobile-controls">
+            <div class="control-group">
+                <div class="movement-controls">
+                    <button id="p1-left-btn" class="control-button arrow-left"></button>
+                    <button id="p1-up-btn" class="control-button arrow-up"></button>
+                    <button id="p1-right-btn" class="control-button arrow-right"></button>
+                </div>
+                <div class="action-controls">
+                    <button id="p1-attack-btn" class="control-button action-button attack-icon"></button>
+                    <button id="p1-block-btn" class="control-button block-button block-icon"></button>
+                </div>
+            </div>
+            </div>
+    </div>
+
+
+    <script>
+        // --- Referencias a Elementos del DOM ---
+        const characterSelectScreen = document.getElementById('character-select-screen');
+        const gameContainer = document.getElementById('game-container');
+        const gameScreen = document.getElementById('game-screen');
+        const p1OptionsContainer = document.getElementById('p1-options');
+        // const p2OptionsContainer = document.getElementById('p2-options'); // Eliminado
+        const p1SelectedText = document.getElementById('p1-selected');
+        // const p2SelectedText = document.getElementById('p2-selected'); // Eliminado
+        const startGameButton = document.getElementById('start-game-button');
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const p1HealthBar = document.getElementById('p1-health');
+        const p2HealthBar = document.getElementById('p2-health');
+        const p1NameHud = document.getElementById('p1-name');
+        const p2NameHud = document.getElementById('p2-name');
+        const timerDisplay = document.getElementById('timer');
+        const resultMessage = document.getElementById('result-message');
+        const mobileControls = document.getElementById('mobile-controls');
+        const p1LeftBtn = document.getElementById('p1-left-btn');
+        const p1RightBtn = document.getElementById('p1-right-btn');
+        const p1UpBtn = document.getElementById('p1-up-btn');
+        const p1AttackBtn = document.getElementById('p1-attack-btn');
+        const p1BlockBtn = document.getElementById('p1-block-btn');
+        // Referencias a botones P2 eliminadas
+
+        // --- NUEVO: Referencias a Dificultad ---
+        const difficultyOptionsContainer = document.getElementById('difficulty-options');
+
+        // --- Datos de Personajes (Añadido Naruto) ---
+        const characters = [
+            {
+                id: 'itachi', name: 'Itachi',
+                // Asume que tienes una imagen miniatura para la selección
+                thumbnail: './MATERIAL ITACHI/quieto.png', // Usa una imagen representativa
+                animations: {
+                    idle: ['./MATERIAL ITACHI/quieto.png'], walk: ['./MATERIAL ITACHI/correr1.png', './MATERIAL ITACHI/correr2.png'],
+                    jump: ['./MATERIAL ITACHI/salto1.png', './MATERIAL ITACHI/salto2.png'],
+                    attack1: ['./MATERIAL ITACHI/golpe1.png', './MATERIAL ITACHI/golpe2.png', './MATERIAL ITACHI/golpe3.png'],
+                    block: ['./MATERIAL ITACHI/cubrirse.png']
+                },
+                // Mismas configs de frames por ahora
+                framesHoldConfig: { idle: 15, walk: 8, jump: 10, attack1: 6, block: 30 },
+                color: '#8B0000',
+            },
+            // --- NUEVO PERSONAJE ---
+            {
+                id: 'naruto', name: 'Naruto',
+                thumbnail: './MATERIAL NARUTO/quieto.png', // Usa una imagen representativa
+                animations: {
+                    // Asume que los nombres de archivo son iguales dentro de la carpeta MATERIAL NARUTO
+                    idle: ['./MATERIAL NARUTO/quieto.png'], walk: ['./MATERIAL NARUTO/correr1.png', './MATERIAL NARUTO/correr2.png'],
+                    jump: ['./MATERIAL NARUTO/salto1.png', './MATERIAL NARUTO/salto2.png'],
+                    attack1: ['./MATERIAL NARUTO/golpe1.png', './MATERIAL NARUTO/golpe2.png', './MATERIAL NARUTO/golpe3.png'],
+                    block: ['./MATERIAL NARUTO/cubrirse.png']
+                },
+                framesHoldConfig: { idle: 15, walk: 8, jump: 10, attack1: 6, block: 30 }, // Puedes ajustar esto para Naruto
+                color: '#FFA500', // Naranja
+            }
+        ];
+
+        // --- Estado del Juego ---
+        let player1Selection = null;
+        // let player2Selection = null; // Eliminado
+        let player1; // Humano
+        let player2; // CPU
+        let gameTimer = 60;
+        let timerInterval;
+        let keys = {};
+        let gameActive = false;
+        let gravity = 0.7;
+        let animationFrameId;
+        let preloadedCharacterImages = {};
+        let totalImagesToLoad = 0;
+        let imagesLoadedCount = 0;
+        let selectedDifficulty = null; // NUEVO: Almacena la dificultad
+
+        // --- Constantes de IA ---
+        const AI_REACTION_TIME = { easy: 400, medium: 250, hard: 100 }; // ms (más bajo es más rápido)
+        const AI_ATTACK_CHANCE = { easy: 0.3, medium: 0.6, hard: 0.8 }; // Probabilidad de atacar si está en rango
+        const AI_BLOCK_CHANCE = { easy: 0.2, medium: 0.5, hard: 0.85 }; // Probabilidad de bloquear un ataque visto
+        const AI_PREFERRED_DISTANCE = { easy: 200, medium: 150, hard: 120 }; // Distancia que intenta mantener
+        const AI_JUMP_CHANCE = 0.05; // Probabilidad baja de saltar aleatoriamente por frame
+
+        // --- Clases y Lógica del Juego ---
+        class Fighter {
+            constructor({ position, velocity, characterData, isCPU = false, difficulty = 'medium' }) { // Añadido isCPU y difficulty
+                this.position = position;
+                this.velocity = velocity;
+                this.width = 50;
+                this.height = 150;
+                this.characterData = characterData;
+                this.name = characterData.name; // Nombre del personaje
+                this.displayName = isCPU ? `CPU (${difficulty})` : 'JUGADOR'; // Nombre a mostrar
+                this.health = 100;
+                this.isAttacking = false;
+                this.isBlocking = false;
+                this.attackBox = { position: { x: this.position.x, y: this.position.y }, width: 250, height: 100, offset: { x: 0, y: 0 } };
+                this.attackCooldown = 500;
+                this.lastAttackTime = 0;
+                this.isGrounded = false;
+                this.lastKeyPressed = null;
+                this.facing = 'right';
+                this.scale = 1.2; // Imágenes pequeñas
+                this.drawOffset = { x: 0, y: 0 };
+                this.preloadedImages = preloadedCharacterImages[this.characterData.id];
+                this.currentAnimationName = 'idle';
+                this.currentAnimationFrames = this.preloadedImages?.[this.currentAnimationName] || []; // Fallback a array vacío
+                this.currentFrameIndex = 0;
+                this.framesElapsed = 0;
+                this.framesHold = this.characterData.framesHoldConfig[this.currentAnimationName] || 15; // Fallback
+
+                // --- Lógica específica de CPU ---
+                this.isCPU = isCPU;
+                this.difficulty = difficulty;
+                this.aiState = 'idle'; // Estado de la IA: idle, approaching, retreating, attacking, blocking, jumping
+                this.aiActionTimer = 0; // Temporizador para cambiar acciones de IA
+                this.aiReactionTimer = 0; // Temporizador para reaccionar a acciones del jugador
+
+                if (this.preloadedImages) {
+                    this.calculateInitialOffset();
+                } else {
+                     console.error(`Imágenes no precargadas para ${this.name}`);
+                     this.drawOffset = { x: -50, y: -50 };
+                }
+            }
+
+            calculateInitialOffset() { /* ...código igual... */
+                const firstImage = this.preloadedImages?.idle?.[0];
+                if (firstImage && firstImage.width > 0) { const displayWidth = firstImage.naturalWidth * this.scale; const displayHeight = firstImage.naturalHeight * this.scale; this.drawOffset = { x: (this.width - displayWidth) / 2, y: (this.height - displayHeight) }; }
+                else { this.drawOffset = { x: -50, y: -50 }; console.warn(`No se pudo calcular offset inicial para ${this.name}`); }
+            }
+            draw() { /* ...código igual... */
+                const currentImage = this.currentAnimationFrames?.[this.currentFrameIndex];
+                if (!currentImage || !currentImage.complete || currentImage.naturalWidth === 0) { ctx.fillStyle = this.characterData.color || 'grey'; ctx.fillRect(this.position.x, this.position.y, this.width, this.height); return; }
+                const displayWidth = currentImage.naturalWidth * this.scale; const displayHeight = currentImage.naturalHeight * this.scale; const currentDrawOffsetY = (this.height - displayHeight); const currentDrawOffsetX = this.drawOffset.x; const drawX = this.position.x + currentDrawOffsetX; const drawY = this.position.y + currentDrawOffsetY;
+                ctx.save(); if (this.facing === 'left') { ctx.scale(-1, 1); ctx.drawImage(currentImage, -(drawX + displayWidth), drawY, displayWidth, displayHeight); } else { ctx.drawImage(currentImage, drawX, drawY, displayWidth, displayHeight); } ctx.restore();
+                // Debug Hitboxes (opcional)
+                // ctx.strokeStyle = 'blue'; ctx.strokeRect(this.position.x, this.position.y, this.width, this.height);
+                // if (this.isAttacking) { ctx.fillStyle = 'rgba(255, 255, 0, 0.3)'; ctx.fillRect(this.attackBox.position.x, this.attackBox.position.y, this.attackBox.width, this.attackBox.height); }
+             }
+            update(opponent) { // Ahora recibe al oponente para la IA
+                // --- Actualización de la IA (si es CPU) ---
+                if (this.isCPU && opponent) {
+                    this.updateCpuLogic(opponent);
+                }
+
+                // --- Física y Límites ---
+                if (!this.isBlocking) { this.position.x += this.velocity.x; }
+                this.position.y += this.velocity.y;
+                if (this.position.y + this.height + this.velocity.y < canvas.height) { this.velocity.y += gravity; this.isGrounded = false; }
+                else { this.velocity.y = 0; this.position.y = canvas.height - this.height; this.isGrounded = true; }
+                if (this.position.x < 0) this.position.x = 0; if (this.position.x + this.width > canvas.width) this.position.x = canvas.width - this.width;
+
+                // --- Dirección (Facing) ---
+                // La IA actualiza 'facing' en su lógica. El jugador humano lo hace aquí si no está bloqueando.
+                if (!this.isCPU && !this.isBlocking) {
+                    if (this.velocity.x > 0) this.facing = 'right'; else if (this.velocity.x < 0) this.facing = 'left';
+                } else if (this.isCPU && opponent && !this.isBlocking) { // CPU mira al jugador
+                    this.facing = (opponent.position.x > this.position.x) ? 'right' : 'left';
+                }
+
+                // --- Animación ---
+                this.updateAnimation();
+                // --- Dibujar ---
+                this.draw();
+                // --- Hitbox de ataque ---
+                const attackBaseOffsetX = 50;
+                const attackOffsetX = (this.facing === 'right') ? attackBaseOffsetX : -this.attackBox.width + this.width - attackBaseOffsetX;
+                this.attackBox.offset.x = attackOffsetX; this.attackBox.position.x = this.position.x + this.attackBox.offset.x; this.attackBox.position.y = this.position.y + 50;
+            }
+            updateAnimation() { /* ...código igual... */
+                 if (this.isBlocking && this.currentAnimationFrames.length <= 1) { if (this.currentAnimationName !== 'block') { this.switchAnimation('block'); } else { this.currentFrameIndex = 0; } return; }
+                 if (!this.currentAnimationFrames || this.currentAnimationFrames.length === 0) return; // Safety check
+                 this.framesElapsed++;
+                 if (this.framesElapsed % this.framesHold === 0) {
+                     this.currentFrameIndex++;
+                     if (this.currentFrameIndex >= this.currentAnimationFrames.length) { if (this.currentAnimationName === 'attack1') { this.switchAnimation('idle'); } else { this.currentFrameIndex = 0; } }
+                 }
+             }
+            switchAnimation(animationName) { /* ...código igual... */
+                if (this.isBlocking && animationName !== 'block') return;
+                if (!this.preloadedImages?.[animationName]) { console.warn(`Animación "${animationName}" no encontrada para ${this.name}`); return; }
+                if (this.currentAnimationName !== animationName) {
+                    this.currentAnimationName = animationName; this.currentAnimationFrames = this.preloadedImages[animationName]; this.currentFrameIndex = 0; this.framesElapsed = 0;
+                    this.framesHold = this.characterData.framesHoldConfig[animationName] || 15;
+                    if (!this.currentAnimationFrames) this.currentAnimationFrames = []; // Safety check
+                 }
+            }
+            attack() { /* ...código igual... */
+                 if (this.isBlocking || this.isAttacking) return; const now = Date.now();
+                 if (now - this.lastAttackTime > this.attackCooldown) { this.isAttacking = true; this.lastAttackTime = now; this.switchAnimation('attack1'); const attackAnimDuration = (this.characterData.framesHoldConfig.attack1 || 6) * (this.preloadedImages?.attack1?.length || 1) * (1000/60); setTimeout(() => { this.isAttacking = false; }, attackAnimDuration); }
+            }
+            jump() { /* ...código igual... */ if (!this.isBlocking && !this.isAttacking && this.isGrounded) { this.velocity.y = -18; this.switchAnimation('jump'); } }
+            block(isBlocking) { /* ...código igual... */ if (isBlocking && this.isGrounded && !this.isAttacking) { this.isBlocking = true; this.velocity.x = 0; this.switchAnimation('block'); } else { if (this.isBlocking) { this.isBlocking = false; if (this.isGrounded && this.velocity.x === 0) { this.switchAnimation('idle'); } } } }
+            takeHit(damage) { /* ...código igual... */ if (this.isBlocking) { console.log(`${this.displayName} bloqueó!`); damage *= 0.2; if (damage < 1) damage = 0; } if (damage > 0) { this.health -= damage; if (this.health < 0) this.health = 0; console.log(`${this.displayName} hit! Salud: ${this.health}`); updateHealthBars(); } if (this.health <= 0 && gameActive) { determineWinner({ player1, player2, timerId: timerInterval }); } }
+
+            // --- NUEVA Lógica de IA ---
+            updateCpuLogic(opponent) {
+                if (!gameActive || this.isAttacking) return; // No hacer nada si el juego acabó o ya está atacando
+
+                const distanceX = Math.abs(opponent.position.x - this.position.x);
+                const distanceY = Math.abs(opponent.position.y - this.position.y);
+                const canAttack = distanceX < AI_PREFERRED_DISTANCE[this.difficulty] + 50 && distanceY < this.height / 2; // Rango de ataque simple
+                const reactionTime = AI_REACTION_TIME[this.difficulty];
+                const blockChance = AI_BLOCK_CHANCE[this.difficulty];
+                const attackChance = AI_ATTACK_CHANCE[this.difficulty];
+                const preferredDistance = AI_PREFERRED_DISTANCE[this.difficulty];
+
+                // --- Decisión de Bloqueo ---
+                this.aiReactionTimer += 1000 / 60; // Aproximación del tiempo por frame
+                if (opponent.isAttacking && this.aiReactionTimer >= reactionTime) {
+                    if (Math.random() < blockChance) {
+                        this.block(true);
+                        this.aiState = 'blocking';
+                        this.aiReactionTimer = 0; // Resetear timer de reacción
+                        return; // Priorizar bloqueo
+                    }
+                }
+                // Dejar de bloquear si el oponente ya no ataca o pasó un tiempo
+                if (this.isBlocking && (!opponent.isAttacking || this.aiReactionTimer > 500)) {
+                     this.block(false);
+                     this.aiState = 'idle';
+                }
+
+                // Si está bloqueando, no hacer otras acciones
+                if (this.isBlocking) return;
+
+                // --- Decisión de Ataque ---
+                if (canAttack && Math.random() < attackChance && this.aiReactionTimer >= reactionTime / 2) { // Atacar más rápido que bloquear
+                    this.attack();
+                    this.aiState = 'attacking';
+                    this.aiReactionTimer = 0;
+                    return; // Priorizar ataque
+                }
+
+                // --- Decisión de Movimiento ---
+                this.aiActionTimer += 1000 / 60;
+                // Cambiar de acción de movimiento cada cierto tiempo o si el estado cambió
+                if (this.aiActionTimer > 500 + Math.random() * 500 || this.aiState === 'idle') {
+                    this.aiActionTimer = 0;
+                    if (distanceX > preferredDistance + 20) {
+                        this.aiState = 'approaching';
+                    } else if (distanceX < preferredDistance - 20) {
+                        this.aiState = 'retreating';
+                    } else {
+                        this.aiState = 'idle'; // Mantener distancia
+                    }
+                    // Pequeña chance de saltar
+                    if (Math.random() < AI_JUMP_CHANCE && this.isGrounded) {
+                        this.jump();
+                        this.aiState = 'jumping';
+                    }
+                }
+
+                // Ejecutar movimiento basado en el estado de IA
+                this.velocity.x = 0; // Resetear velocidad horizontal por defecto
+                if (this.aiState === 'approaching') {
+                    this.velocity.x = (this.facing === 'right' ? 4 : -4); // Moverse hacia adelante (velocidad ligeramente menor)
+                    this.switchAnimation('walk');
+                } else if (this.aiState === 'retreating') {
+                    this.velocity.x = (this.facing === 'right' ? -4 : 4); // Moverse hacia atrás
+                    this.switchAnimation('walk');
+                } else if (this.isGrounded && !this.isAttacking && !this.isBlocking) {
+                     // Si no se mueve, atacar o bloquear, y está en el suelo -> idle
+                     this.switchAnimation('idle');
+                }
+                // Mantener animación de salto si está en el aire
+                if (!this.isGrounded && !this.isAttacking && !this.isBlocking) {
+                    this.switchAnimation('jump');
+                }
+            }
+            // --- FIN Lógica de IA ---
+        }
+
+        // --- Funciones de Inicialización y Control ---
+
+        // Precarga (Modificada para incluir miniaturas)
+        function preloadImages(callback) {
+            totalImagesToLoad = 0; imagesLoadedCount = 0; preloadedCharacterImages = {};
+            characters.forEach(char => {
+                preloadedCharacterImages[char.id] = {}; let imagesForChar = 0;
+                // Precargar miniatura también
+                if (char.thumbnail) {
+                     totalImagesToLoad++;
+                     const thumb = new Image();
+                     thumb.onload = () => { imagesLoadedCount++; if (imagesLoadedCount === totalImagesToLoad) { console.log("¡Todas las imágenes cargadas!"); callback(); } };
+                     thumb.onerror = () => { imagesLoadedCount++; console.error(`Error loading thumbnail: ${char.thumbnail}`); if (imagesLoadedCount === totalImagesToLoad) { console.log("Carga finalizada (con errores)."); callback(); } };
+                     thumb.src = char.thumbnail;
+                     // Guardarla en algún sitio si se necesita después, o solo precargarla
+                }
+
+                for (const animName in char.animations) {
+                    preloadedCharacterImages[char.id][animName] = []; const imagePaths = char.animations[animName];
+                    imagePaths.forEach((path, index) => {
+                        totalImagesToLoad++; imagesForChar++; const img = new Image();
+                        img.onload = () => { imagesLoadedCount++; preloadedCharacterImages[char.id][animName][index] = img; if (imagesLoadedCount === totalImagesToLoad) { console.log("¡Todas las imágenes cargadas!"); callback(); } };
+                        img.onerror = () => { imagesLoadedCount++; console.error(`Error loading image: ${path}`); preloadedCharacterImages[char.id][animName][index] = null; if (imagesLoadedCount === totalImagesToLoad) { console.log("Carga finalizada (con errores)."); callback(); } };
+                        img.src = path;
+                    });
+                }
+            });
+            if (totalImagesToLoad === 0) { console.warn("No se encontraron imágenes para precargar."); callback(); }
+         }
+
+        // Poblar opciones (Modificado para 1P y miniaturas)
+        function populateCharacterOptions() {
+            p1OptionsContainer.innerHTML = '';
+            characters.forEach(charData => {
+                const btn1 = document.createElement('button');
+                btn1.classList.add('char-button');
+                btn1.dataset.charId = charData.id;
+                btn1.onclick = () => selectCharacter(1, charData.id);
+
+                // Añadir miniatura si existe
+                if (charData.thumbnail) {
+                    const img = document.createElement('img');
+                    img.src = charData.thumbnail;
+                    img.alt = charData.name;
+                    btn1.appendChild(img);
+                }
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = charData.name;
+                btn1.appendChild(nameSpan);
+
+                p1OptionsContainer.appendChild(btn1);
+            });
+         }
+
+        // Seleccionar personaje (Modificado para 1P)
+        function selectCharacter(playerNum, charId) { // playerNum siempre será 1 ahora
+            const selectedChar = characters.find(c => c.id === charId);
+            if (!selectedChar) return;
+            // Marcar/Desmarcar botón
+            p1OptionsContainer.querySelectorAll('.char-button').forEach(btn => btn.classList.remove('selected'));
+            const clickedButton = p1OptionsContainer.querySelector(`.char-button[data-char-id="${charId}"]`);
+            if (clickedButton) clickedButton.classList.add('selected');
+            // Guardar selección P1
+            player1Selection = selectedChar;
+            p1SelectedText.textContent = selectedChar.name;
+            checkCanStartGame(); // Comprobar si ya se puede empezar
+        }
+
+        // --- NUEVO: Seleccionar Dificultad ---
+        function selectDifficulty(difficulty) {
+            selectedDifficulty = difficulty;
+            // Marcar/Desmarcar botón de dificultad
+            difficultyOptionsContainer.querySelectorAll('.difficulty-button').forEach(btn => btn.classList.remove('selected'));
+            const clickedButton = difficultyOptionsContainer.querySelector(`.difficulty-button[data-difficulty="${difficulty}"]`);
+            if (clickedButton) clickedButton.classList.add('selected');
+            checkCanStartGame(); // Comprobar si ya se puede empezar
+        }
+
+        // --- NUEVO: Comprobar si se puede iniciar el juego ---
+        function checkCanStartGame() {
+            startGameButton.disabled = !(player1Selection && selectedDifficulty);
+        }
+
+        // Resetear selección (Modificado para dificultad)
+        function resetSelections() {
+            player1Selection = null;
+            selectedDifficulty = null;
+            p1SelectedText.textContent = '- Ninguno -';
+            p1OptionsContainer.querySelectorAll('.char-button').forEach(btn => btn.classList.remove('selected'));
+            difficultyOptionsContainer.querySelectorAll('.difficulty-button').forEach(btn => btn.classList.remove('selected'));
+            startGameButton.disabled = true;
+         }
+
+        // Iniciar juego (Modificado para crear CPU y pasar dificultad)
+        function startGame() {
+            if (!player1Selection || !selectedDifficulty) return; // Comprobar ambos
+            characterSelectScreen.classList.remove('active');
+            gameContainer.classList.add('active');
+            mobileControls.style.display = 'flex';
+            resultMessage.style.display = 'none';
+            canvas.width = 1024; canvas.height = 576;
+
+            // Crear Jugador 1 (Humano)
+            player1 = new Fighter({
+                position: { x: 150, y: canvas.height - 150 - 50 }, velocity: { x: 0, y: 0 },
+                characterData: player1Selection, isCPU: false
+            });
+            player1.facing = 'right';
+
+            // Crear Jugador 2 (CPU)
+            // Elegir personaje CPU (ej: el que no eligió el jugador, o aleatorio si hay más)
+            let cpuCharacterData = characters.find(c => c.id !== player1Selection.id);
+            if (!cpuCharacterData) cpuCharacterData = characters[Math.floor(Math.random() * characters.length)]; // Aleatorio si solo hay 1 o P1 eligió el único otro
+
+            player2 = new Fighter({
+                position: { x: canvas.width - 150 - 50, y: canvas.height - 150 - 50 }, velocity: { x: 0, y: 0 },
+                characterData: cpuCharacterData, isCPU: true, difficulty: selectedDifficulty // Pasar dificultad
+            });
+            player2.facing = 'left';
+
+            // Actualizar HUD con nombres correctos
+            p1NameHud.textContent = player1.displayName; // "JUGADOR"
+            p2NameHud.textContent = `${player2.name} (CPU ${selectedDifficulty})`; // "Itachi (CPU medium)"
+
+            player1.health = 100; player2.health = 100; updateHealthBars();
+            startTimer(); keys = {}; gameActive = true; animate();
+        }
+
+        // Actualizar barras de vida (Sin cambios)
+        function updateHealthBars() { /* ...código igual... */ if (!player1 || !player2) return; p1HealthBar.style.width = `${player1.health}%`; p2HealthBar.style.width = `${player2.health}%`; p1HealthBar.style.backgroundColor = player1.health < 30 ? 'orange' : '#4CAF50'; p2HealthBar.style.backgroundColor = player2.health < 30 ? 'orange' : '#4CAF50'; }
+        // Colisión rectangular (Sin cambios)
+        function rectangularCollision({ rectangle1, rectangle2 }) { /* ...código igual... */ if (!rectangle1.isAttacking) return false; const attackBox = rectangle1.attackBox; return (attackBox.position.x < rectangle2.position.x + rectangle2.width && attackBox.position.x + attackBox.width > rectangle2.position.x && attackBox.position.y < rectangle2.position.y + rectangle2.height && attackBox.position.y + attackBox.height > rectangle2.position.y); }
+        // Determinar ganador (Modificado texto resultado)
+        function determineWinner({ player1, player2, timerId }) {
+             if (!gameActive) return; clearTimeout(timerId); if (animationFrameId) window.cancelAnimationFrame(animationFrameId); gameActive = false; mobileControls.style.display = 'none';
+             resultMessage.style.display = 'flex';
+             if (player1.health <= 0 && player2.health <= 0) { resultMessage.innerHTML = '¡DOBLE K.O.!'; } // Caso raro
+             else if (player1.health <= 0) { resultMessage.innerHTML = `¡CPU (${player2.name}) Gana!`; }
+             else if (player2.health <= 0) { resultMessage.innerHTML = `¡GANASTE!`; }
+             else { // Time out
+                 if (player1.health === player2.health) { resultMessage.innerHTML = '¡Empate!'; }
+                 else if (player1.health > player2.health) { resultMessage.innerHTML = `¡GANASTE!<br>(Por Tiempo)`; }
+                 else { resultMessage.innerHTML = `¡CPU Gana!<br>(Por Tiempo)`; }
+             }
+             setTimeout(() => { gameContainer.classList.remove('active'); characterSelectScreen.classList.add('active'); resetSelections(); }, 4000);
+        }
+        // Iniciar timer (Sin cambios)
+        function startTimer() { /* ...código igual... */ if (timerInterval) clearInterval(timerInterval); gameTimer = 60; timerDisplay.textContent = gameTimer; timerInterval = setInterval(() => { if (gameTimer > 0 && gameActive) { gameTimer--; timerDisplay.textContent = gameTimer; } else if (gameActive) { determineWinner({ player1, player2, timerId: timerInterval }); } else { clearInterval(timerInterval); } }, 1000); }
+
+        // Bucle de Animación Principal (Modificado para actualizar CPU)
+        function animate() {
+            if (!gameActive) return;
+            animationFrameId = window.requestAnimationFrame(animate);
+            ctx.fillStyle = '#505050'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // --- Actualización Jugador 1 (Humano) ---
+            if (player1) {
+                // Resetear velocidad si no está bloqueando (ya que los botones no la resetean)
+                if (!player1.isBlocking) player1.velocity.x = 0;
+
+                // Aplicar movimiento basado en el estado de 'keys' (controlado por teclado y botones)
+                if (!player1.isAttacking && !player1.isBlocking) {
+                    if (keys.a?.pressed) { player1.velocity.x = -5; player1.switchAnimation('walk'); }
+                    else if (keys.d?.pressed) { player1.velocity.x = 5; player1.switchAnimation('walk'); }
+                    else if (player1.isGrounded) { player1.switchAnimation('idle'); } // Idle si no se mueve y está en suelo
+                }
+                 // Animación de salto si está en el aire
+                if (!player1.isGrounded && !player1.isAttacking && !player1.isBlocking) {
+                    player1.switchAnimation('jump');
+                }
+                player1.update(player2); // Pasa al oponente (CPU) por si acaso, aunque no lo usa
+            }
+
+            // --- Actualización Jugador 2 (CPU) ---
+            if (player2) {
+                player2.update(player1); // Llama a update, que incluye updateCpuLogic
+            }
+
+            // --- Colisiones ---
+            if (player1 && player2) {
+                if (rectangularCollision({ rectangle1: player1, rectangle2: player2 })) { player2.takeHit(10); player1.isAttacking = false; }
+                if (rectangularCollision({ rectangle1: player2, rectangle2: player1 })) { player1.takeHit(10); player2.isAttacking = false; }
+            }
+        }
+
+        // --- Event Listeners Teclado (Sin cambios funcionales, controla P1) ---
+        window.addEventListener('keydown', (event) => { /* ...código igual, controla P1... */
+            if (!gameActive || !player1) return;
+            switch (event.key.toLowerCase()) {
+                case 'd': keys.d = { pressed: true }; player1.lastKeyPressed = 'd'; break;
+                case 'a': keys.a = { pressed: true }; player1.lastKeyPressed = 'a'; break;
+                case 'w': player1.jump(); break;
+                case 's': player1.block(true); keys.s = { pressed: true }; break;
+                case ' ': event.preventDefault(); player1.attack(); break;
+            }
+        });
+        window.addEventListener('keyup', (event) => { /* ...código igual, controla P1... */
+            if (!gameActive || !player1) return;
+            switch (event.key.toLowerCase()) {
+                case 'd': keys.d = { pressed: false }; break;
+                case 'a': keys.a = { pressed: false }; break;
+                case 's': player1.block(false); keys.s = { pressed: false }; break;
+            }
+        });
+
+        // --- Event Listeners Botones en Pantalla (Modificados para P1) ---
+        function handleButtonPress(action, keyName) { // Solo para P1
+            if (!gameActive || !player1) return;
+            switch (action) {
+                case 'left': keys[keyName] = { pressed: true }; player1.lastKeyPressed = keyName; break;
+                case 'right': keys[keyName] = { pressed: true }; player1.lastKeyPressed = keyName; break;
+                case 'up': player1.jump(); break;
+                case 'attack': player1.attack(); break;
+                case 'block': player1.block(true); keys[keyName] = { pressed: true }; break;
+            }
+        }
+        function handleButtonRelease(action, keyName) { // Solo para P1
+            if (!gameActive || !player1) return;
+            switch (action) {
+                case 'left': keys[keyName] = { pressed: false }; break;
+                case 'right': keys[keyName] = { pressed: false }; break;
+                case 'block': player1.block(false); keys[keyName] = { pressed: false }; break;
+            }
+        }
+
+        // Asignar listeners a botones P1
+        p1LeftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); handleButtonPress('left', 'a'); });
+        p1LeftBtn.addEventListener('touchend', (e) => { e.preventDefault(); handleButtonRelease('left', 'a'); });
+        p1LeftBtn.addEventListener('mousedown', () => handleButtonPress('left', 'a'));
+        p1LeftBtn.addEventListener('mouseup', () => handleButtonRelease('left', 'a'));
+        p1LeftBtn.addEventListener('mouseleave', () => handleButtonRelease('left', 'a'));
+
+        p1RightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); handleButtonPress('right', 'd'); });
+        p1RightBtn.addEventListener('touchend', (e) => { e.preventDefault(); handleButtonRelease('right', 'd'); });
+        p1RightBtn.addEventListener('mousedown', () => handleButtonPress('right', 'd'));
+        p1RightBtn.addEventListener('mouseup', () => handleButtonRelease('right', 'd'));
+        p1RightBtn.addEventListener('mouseleave', () => handleButtonRelease('right', 'd'));
+
+        p1UpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); handleButtonPress('up', 'w'); });
+        p1UpBtn.addEventListener('mousedown', () => handleButtonPress('up', 'w'));
+
+        p1AttackBtn.addEventListener('touchstart', (e) => { e.preventDefault(); handleButtonPress('attack', ' '); });
+        p1AttackBtn.addEventListener('mousedown', () => handleButtonPress('attack', ' '));
+
+        p1BlockBtn.addEventListener('touchstart', (e) => { e.preventDefault(); handleButtonPress('block', 's'); });
+        p1BlockBtn.addEventListener('touchend', (e) => { e.preventDefault(); handleButtonRelease('block', 's'); });
+        p1BlockBtn.addEventListener('mousedown', () => handleButtonPress('block', 's'));
+        p1BlockBtn.addEventListener('mouseup', () => handleButtonRelease('block', 's'));
+        p1BlockBtn.addEventListener('mouseleave', () => handleButtonRelease('block', 's'));
+
+        // Listeners para botones P2 eliminados
+
+        // --- Inicialización ---
+        // Añadir listeners a botones de dificultad
+        difficultyOptionsContainer.querySelectorAll('.difficulty-button').forEach(button => {
+            button.addEventListener('click', () => selectDifficulty(button.dataset.difficulty));
+        });
+
+        startGameButton.onclick = startGame;
+        mobileControls.style.display = 'none'; // Ocultar controles inicialmente
+        console.log("Iniciando precarga de imágenes...");
+        preloadImages(() => {
+            console.log("Precarga completada. Poblando opciones...");
+            populateCharacterOptions();
+            resetSelections(); // Asegurar estado inicial limpio
+        });
+
+    </script>
+</body>
+</html>
+
