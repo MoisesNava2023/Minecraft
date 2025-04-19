@@ -366,14 +366,14 @@
 
         // --- Skins Configuration ---
         const skins = [
-            { id: 'steve', name: 'Steve', file: 'steve.png', unlockScore: 0, img: new Image() },
-            { id: 'alex', name: 'Alex', file: 'skin_alex.png', unlockScore: 50, img: new Image() },
-            { id: 'zombie', name: 'Zombie', file: 'skin_zombie.png', unlockScore: 100, img: new Image() },
-            { id: 'pig', name: 'Pig', file: 'skin_pig.png', unlockScore: 200, img: new Image() },
-            { id: 'enderman', name: 'Enderman', file: 'skin_enderman.png', unlockScore: 350, img: new Image() },
+            { id: 'steve', name: 'Steve', file: 'steve.PNG', unlockScore: 0, img: new Image() },
+            { id: 'alex', name: 'Alex', file: 'skin_alex.PNG', unlockScore: 50, img: new Image() },
+            { id: 'zombie', name: 'Zombie', file: 'skin_zombie.PNG', unlockScore: 100, img: new Image() },
+            { id: 'pig', name: 'Pig', file: 'skin_pig.PNG', unlockScore: 200, img: new Image() },
+            { id: 'enderman', name: 'Enderman', file: 'skin_enderman.PNG', unlockScore: 350, img: new Image() },
             { id: 'villager', name: 'Aldeano', file: 'skin_villager.png', unlockScore: 500, img: new Image() },
-            { id: 'iron_golem', name: 'Golem', file: 'skin_iron_golem.png', unlockScore: 700, img: new Image() },
-            { id: 'creeper', name: 'Creeper', file: 'skin_creeper.png', unlockScore: 1000, img: new Image() }
+            { id: 'iron_golem', name: 'Golem', file: 'skin_iron_golem.PNG', unlockScore: 700, img: new Image() },
+            { id: 'creeper', name: 'Creeper', file: 'skin_creeper.PNG', unlockScore: 1000, img: new Image() }
         ];
         let currentSkinIndex = parseInt(localStorage.getItem('currentSkinIndex') || '0');
         let unlockedSkins = JSON.parse(localStorage.getItem('unlockedSkins') || JSON.stringify(skins.map(s => s.unlockScore === 0)));
