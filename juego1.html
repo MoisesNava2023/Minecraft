@@ -14,54 +14,87 @@
       justify-content: center;
       height: 100vh;
       font-family: sans-serif;
+      /* Imagen de fondo del body */
       background-image: url('MATERIAL/back3.jpg');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
+      overflow: hidden; /* Evita barras de scroll */
     }
+
+    /* --- ESTILOS PANTALLA DE CARGA --- */
+    #loadingScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #000; /* Fondo negro */
+      display: flex; /* Visible por defecto */
+      flex-direction: column; /* Para alinear texto y botón verticalmente */
+      justify-content: center;
+      align-items: center;
+      z-index: 10000; /* Muy alto para estar encima de todo */
+      color: white;
+    }
+
+    #loadingText {
+      font-size: 2em;
+      text-shadow: 2px 2px 4px #555;
+      margin-bottom: 20px; /* Espacio antes del botón */
+    }
+
+    #acceptButton {
+      padding: 12px 25px;
+      font-size: 1.2em;
+      background-color: #5e9e0b; /* Verde */
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: none; /* Oculto inicialmente */
+      transition: background-color 0.2s ease;
+    }
+
+    #acceptButton:hover {
+      background-color: #4c8208; /* Verde más oscuro */
+    }
+    /* --- FIN ESTILOS PANTALLA DE CARGA --- */
 
     canvas {
       display: block;
+      max-width: 100%;
+      max-height: 85vh; /* Aumentado un poco para aprovechar más pantalla */
+      border: 1px solid #333; /* Opcional: borde para ver límites */
+      cursor: pointer; /* Indica que el canvas es clickeable */
+      margin-bottom: 10px; /* Espacio debajo del canvas */
     }
 
-    #jumpButton {
-      margin-top: 20px;
-      width: 190px;
-      height: 90px;
-      cursor: pointer;
-      transition: transform 0.1s;
-      background-color: #5e9e0b;
-      border-radius: 20px;
+    /* Contenedor para los textos de puntuación */
+    #scoreContainer {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%); /* Centra el contenedor */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: rgba(0, 0, 0, 0.3); /* Fondo semitransparente */
+        padding: 5px 15px;
+        border-radius: 10px;
+        z-index: 10; /* Encima del canvas */
     }
 
-    #jumpButton:active {
-      transform: scale(0.95);
-    }
 
-    #score {
-      position: absolute;
-      top: 10px;
-      font-size: 24px;
+    #score, #highScore, #lastScore {
+      font-size: 18px; /* Ajusta tamaño */
       font-weight: bold;
       color: white;
-      text-shadow: 2px 2px 4px #000;
+      text-shadow: 1px 1px 3px #000;
+      margin: 2px 0; /* Espacio entre textos */
     }
+     #score { font-size: 22px; } /* Puntaje actual más grande */
 
-    #highScore {
-      position: absolute;
-      top: 40px;
-      font-size: 18px;
-      color: #ddd;
-      text-shadow: 2px 2px 4px #000;
-    }
-
-    #lastScore {
-      position: absolute;
-      top: 70px;
-      font-size: 18px;
-      color: #bbb;
-      text-shadow: 2px 2px 4px #000;
-    }
 
     #gameOverModal {
       position: fixed;
@@ -70,7 +103,7 @@
       width: 100%;
       height: 100%;
       background-color: rgba(0, 0, 0, 0.7);
-      display: none;
+      display: none; /* Oculto por defecto */
       justify-content: center;
       align-items: center;
       z-index: 999;
@@ -81,13 +114,14 @@
       padding: 30px;
       border-radius: 15px;
       text-align: center;
-      box-shadow: 0 0 10px #000;
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
+      color: #333;
     }
 
     .modal-content h2 {
+      margin-top: 0;
       margin-bottom: 20px;
       font-size: 28px;
-      color: #333;
     }
 
     #restartButton {
@@ -105,19 +139,42 @@
       background-color: #4c8208;
     }
 
-    #skinMenuButton {
-      position: fixed;
-      bottom: 40px;
-      left: 20px;
-      z-index: 1000;
-      padding: 10px 14px;
-      background-color: #0077ff;
-      color: white;
-      font-size: 14px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
+    /* Contenedor para botones inferiores */
+    #bottomControls {
+        position: fixed;
+        bottom: 15px; /* Más cerca del borde */
+        left: 0;
+        width: 100%;
+        display: flex;
+        justify-content: space-between; /* Espacia los botones */
+        padding: 0 20px; /* Padding lateral */
+        box-sizing: border-box; /* Incluye padding en el ancho */
+        z-index: 1000;
     }
+
+
+    #skinMenuButton, #closeButton button {
+        padding: 10px 15px; /* Ajusta padding */
+        font-size: 18px; /* Iconos más grandes */
+        border: none;
+        border-radius: 50%; /* Botones redondos */
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+     #skinMenuButton {
+         background-color: #0077ff; /* Azul */
+         color: white;
+     }
+     #closeButton button {
+         background-color: #e00b0b; /* Rojo */
+         color: white;
+     }
+
+     #skinMenuButton:active, #closeButton button:active {
+         transform: scale(0.9);
+         box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+     }
 
     #skinMenu {
       position: fixed;
@@ -125,13 +182,14 @@
       left: 50%;
       transform: translate(-50%, -50%);
       background-color: rgba(0,0,0,0.85);
-      padding: 20px;
+      padding: 25px;
       border-radius: 12px;
-      display: none;
+      display: none; /* Oculto por defecto */
       flex-wrap: wrap;
       justify-content: center;
       gap: 15px;
       z-index: 1001;
+      border: 2px solid #444;
     }
 
     .skin-option {
@@ -141,40 +199,92 @@
       overflow: hidden;
       cursor: pointer;
       border: 2px solid white;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+      position: relative; /* Para el tooltip */
+    }
+    .skin-option:hover {
+        transform: scale(1.1);
+        border-color: #00ff00;
     }
 
     .skin-option img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      display: block; /* Evita espacio extra bajo la imagen */
     }
 
     .locked {
-      filter: grayscale(100%);
-      opacity: 0.4;
+      filter: grayscale(100%) brightness(0.6); /* Más oscuro y gris */
+      opacity: 0.6;
       cursor: not-allowed;
+      border-color: #555; /* Borde gris para bloqueados */
     }
+     .locked:hover {
+         transform: none; /* Sin efecto hover en bloqueados */
+         border-color: #555;
+     }
+
+    /* Tooltip para skins bloqueadas */
+    .locked::after {
+        content: attr(data-unlock-score); /* Muestra el puntaje necesario */
+        position: absolute;
+        bottom: -25px; /* Posición bajo el icono */
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        opacity: 0; /* Oculto por defecto */
+        transition: opacity 0.2s ease;
+        pointer-events: none; /* No interfiere con clics */
+    }
+    .locked:hover::after {
+        opacity: 1; /* Mostrar tooltip en hover */
+    }
+
+
+    /* Créditos */
+    #credits {
+        position: fixed;
+        bottom: 65px; /* Encima de los botones inferiores */
+        left: 50%;
+        transform: translateX(-50%);
+        color: rgba(255, 255, 255, 0.7); /* Blanco semitransparente */
+        font-size: 12px;
+        text-shadow: 1px 1px 2px #000;
+        z-index: 1000;
+    }
+
   </style>
 </head>
 <body>
-  <div id="score">Puntaje: 0</div>
-  <div id="highScore">Mejor puntaje: 0</div>
-  <div id="lastScore">Último puntaje: 0</div>
-  <canvas id="gameCanvas" width="340" height="580"></canvas>
-  <img id="jumpButton" src="MATERIAL/boton.png" alt="Saltar" />
+  <div id="loadingScreen">
+    <p id="loadingText">Cargando...</p>
+    <button id="acceptButton">Aceptar</button>
+  </div>
 
-  <button id="skinMenuButton">🏁</button>
+  <div id="scoreContainer">
+      <div id="score">Puntaje: 0</div>
+      <div id="highScore">Mejor: 0</div>
+      <div id="lastScore">Último: 0</div>
+  </div>
+
+  <canvas id="gameCanvas" width="340" height="580"></canvas>
+
   <div id="skinMenu"></div>
 
-  <a href="panel.html" id="closeButton" style="position: fixed; bottom: 40px; right: 20px; z-index: 1000;">
-    <button style="padding: 8px 12px; font-size: 14px; border-radius: 8px; background-color: #e00b0b; color: white; border: none; cursor: pointer;">
-      🎲
-    </button>
-  </a>
+  <div id="bottomControls">
+       <button id="skinMenuButton" title="Cambiar Skin">🏁</button>
+       <a href="panel.html" id="closeButton" title="Volver al Panel">
+           <button>🎲</button>
+       </a>
+   </div>
 
-  <p style="margin-top: 15px; color: rgb(197, 196, 196); font-weight: bold; text-shadow: 1px 1px 2px #000;">
-    Hecho por Moises Navarrete
-  </p>
+  <p id="credits">Hecho por Moises Navarrete</p>
 
   <div id="gameOverModal">
     <div class="modal-content">
@@ -184,63 +294,180 @@
   </div>
 
   <script>
+    // --- REFERENCIAS A ELEMENTOS DEL DOM ---
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const scoreDisplay = document.getElementById('score');
     const highScoreDisplay = document.getElementById('highScore');
     const lastScoreDisplay = document.getElementById('lastScore');
+    const loadingScreen = document.getElementById('loadingScreen');
+    const loadingText = document.getElementById('loadingText');
+    const acceptButton = document.getElementById('acceptButton');
+    // const jumpButtonElement = document.getElementById('jumpButton'); // ELIMINADO
+    const skinMenu = document.getElementById('skinMenu');
+    const skinMenuButton = document.getElementById('skinMenuButton');
+    const gameOverModal = document.getElementById('gameOverModal');
+    const restartButton = document.getElementById('restartButton');
+    const closeButton = document.getElementById('closeButton');
 
-    const backgroundImage = new Image();
-    backgroundImage.src = "MATERIAL/back55.png";
-
-    // Obtener el nombre del jugador de algún lugar, ejemplo:
-    const playerName = 'Jugador1'; // Puedes cambiarlo según lo que uses en tu juego para identificar al jugador.
-
-    const birdImage = new Image();
-    const savedSkin = localStorage.getItem(`${playerName}_selectedSkin`) || 'b1.png';
-    birdImage.src = `MATERIAL/${savedSkin}`;
-
-    const pipeImage = new Image();
-    pipeImage.src = "MATERIAL/tubo4.png";
-
-    let birdY = 150;
-    let birdVelocity = 10;
+    // --- CONFIGURACIÓN DEL JUEGO ---
+    const playerName = 'Jugador1'; // Identificador único para guardar datos
     const gravity = 0.2;
-    const jumpStrength = -4;
-    const birdX = 50;
-    let obstacles = [];
-    let frame = 0;
+    const jumpStrength = -4.5; // Un poco más de salto
+    const birdX = 70; // Posición X fija del pájaro
+    const birdWidth = 40;
+    const birdHeight = 40;
+    const pipeWidth = 50; // Ancho de las tuberías
+    const pipeGap = 140; // Espacio vertical entre tuberías
+    const obstacleSpeed = 2.5; // Velocidad de movimiento de los obstáculos
+    const spawnRate = 100; // Frames entre la aparición de nuevos obstáculos (menor = más rápido)
+
+    // --- VARIABLES DE ESTADO DEL JUEGO ---
+    let birdY = canvas.height / 3; // Posición Y inicial
+    let birdVelocity = 0; // Velocidad vertical inicial
+    let obstacles = []; // Array para guardar los obstáculos
+    let frame = 0; // Contador de frames (para spawnear obstáculos)
     let score = 0;
-    let gameOver = false;
-    let gameStarted = false;
     let highScore = parseInt(localStorage.getItem(`${playerName}_flappyHighScore`)) || 0;
-    highScoreDisplay.textContent = `Mejor puntaje: ${highScore}`;
+    let lastScoreValue = parseInt(localStorage.getItem(`${playerName}_flappyLastScore`)) || 0;
+    let gameOver = false;
+    let gameStarted = false; // El juego no empieza hasta el primer salto DESPUÉS de la carga
+    let animationFrameId = null; // ID para controlar el bucle de animación
 
-    const obstacleSpeed = 4;
-    const spawnRate = Math.floor(120 * (2 / obstacleSpeed));
+    // --- RECURSOS (IMÁGENES Y AUDIO) ---
+    const backgroundImage = new Image();
+    const birdImage = new Image();
+    const pipeImage = new Image();
+    // const jumpButtonImage = new Image(); // ELIMINADO
 
-    const backgroundMusic = new Audio('MATERIAL/MI.MP3');
-    const deathSound = new Audio('MATERIAL/HIT2.MP3');
-    const jumpSound = new Audio('MATERIAL/salto1.MP3');
+    const backgroundMusic = new Audio();
+    const deathSound = new Audio();
+    const jumpSound = new Audio();
+    const pointSound = new Audio(); // Sonido al pasar un obstáculo (opcional)
+
+    // --- GESTIÓN DE CARGA DE RECURSOS ---
+    const assetsToLoad = [
+      { type: 'image', element: backgroundImage, src: "MATERIAL/back55.png" },
+      { type: 'image', element: birdImage, src: null }, // Src se define después
+      { type: 'image', element: pipeImage, src: "MATERIAL/tubo4.png" },
+      // { type: 'image', element: jumpButtonImage, src: jumpButtonElement.src }, // ELIMINADO
+      { type: 'audio', element: backgroundMusic, src: 'MATERIAL/MI.MP3' },
+      { type: 'audio', element: deathSound, src: 'MATERIAL/HIT2.MP3' },
+      { type: 'audio', element: jumpSound, src: 'MATERIAL/salto1.MP3' },
+      // { type: 'audio', element: pointSound, src: 'MATERIAL/point.mp3' } // Descomenta si tienes sonido de punto
+    ];
+
+    let assetsLoadedCount = 0;
+    // AJUSTADO: Se resta 1 porque eliminamos la imagen del botón
+    const totalAssets = assetsToLoad.length;
+
+    function assetLoadedCallback(asset) {
+      assetsLoadedCount++;
+      const percentage = Math.round((assetsLoadedCount / totalAssets) * 100);
+      // Asegura que el porcentaje no exceda 100 si hay algún error mínimo de redondeo
+      const displayPercentage = Math.min(percentage, 100);
+      loadingText.textContent = `Cargando... ${displayPercentage}%`;
+      console.log(`Recurso cargado: ${asset.src || asset.element?.id || 'unknown'} (${assetsLoadedCount}/${totalAssets})`);
+
+      if (assetsLoadedCount >= totalAssets) { // Usar >= por si acaso
+        console.log("Todos los recursos cargados.");
+        loadingText.style.display = 'none'; // Oculta el texto "Cargando..."
+        acceptButton.style.display = 'block'; // Muestra el botón "Aceptar"
+        // Añade el listener al botón Aceptar AHORA que está visible
+        acceptButton.addEventListener('click', startGameAfterLoading, { once: true });
+      }
+    }
+
+    function startGameAfterLoading() {
+        loadingScreen.style.display = 'none'; // Oculta toda la pantalla de carga
+        updateScoreDisplays();
+        drawInitialScreen();
+        // El juego realmente comenzará con la función jump() al tocar/hacer clic
+    }
+
+
+    function loadAssets() {
+      console.log("Iniciando carga de recursos...");
+      loadingText.textContent = 'Cargando... 0%'; // Texto inicial
+
+      const savedSkin = localStorage.getItem(`${playerName}_selectedSkin`) || 'b1.png';
+      const birdImageSrc = `MATERIAL/${savedSkin}`;
+      birdImage.src = birdImageSrc; // Asigna src para empezar a cargar
+
+      assetsToLoad.forEach(asset => {
+        const element = asset.element;
+
+        // Asignar SRC si es necesario
+        if (asset.type === 'image' && asset.src && element !== birdImage) {
+            element.src = asset.src;
+        } else if (asset.type === 'audio') {
+            element.src = asset.src;
+            element.preload = 'auto'; // Intenta precargar
+        }
+
+        // Añadir listeners
+        if (asset.type === 'image') {
+          if (element.complete) {
+            setTimeout(() => assetLoadedCallback(asset), 0);
+          } else {
+            element.onload = () => assetLoadedCallback(asset);
+            element.onerror = () => {
+              console.error(`Error cargando imagen: ${element.src}`);
+              assetLoadedCallback(asset);
+            };
+          }
+        } else if (asset.type === 'audio') {
+          element.addEventListener('canplaythrough', () => assetLoadedCallback(asset), { once: true });
+          element.addEventListener('error', (e) => {
+            console.error(`Error cargando audio: ${element.src}`, e);
+            assetLoadedCallback(asset);
+          }, { once: true });
+          element.load();
+        }
+      });
+    }
+    // --- FIN GESTIÓN DE CARGA ---
+
+    // --- FUNCIONES PRINCIPALES DEL JUEGO ---
+
+    function updateScoreDisplays() {
+        scoreDisplay.textContent = `Puntaje: ${score}`;
+        highScoreDisplay.textContent = `Mejor: ${highScore}`;
+        lastScoreDisplay.textContent = `Último: ${lastScoreValue}`;
+    }
 
     function resetGame() {
+      lastScoreValue = score;
+      localStorage.setItem(`${playerName}_flappyLastScore`, lastScoreValue);
+
       if (score > highScore) {
         highScore = score;
         localStorage.setItem(`${playerName}_flappyHighScore`, highScore);
       }
-      highScoreDisplay.textContent = `Mejor puntaje: ${highScore}`;
-      lastScoreDisplay.textContent = `Último puntaje: ${score}`;
-      birdY = 150;
+
+      birdY = canvas.height / 3;
       birdVelocity = 0;
       obstacles = [];
       frame = 0;
       score = 0;
       gameOver = false;
       gameStarted = false;
-      scoreDisplay.textContent = 'Puntaje: 0';
-      birdImage.src = `MATERIAL/${localStorage.getItem(`${playerName}_selectedSkin`) || 'b1.png'}`;
+
+      updateScoreDisplays();
+
+      const currentSkin = localStorage.getItem(`${playerName}_selectedSkin`) || 'b1.png';
+      birdImage.src = `MATERIAL/${currentSkin}`;
+
+      backgroundMusic.pause();
+      backgroundMusic.currentTime = 0;
+
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+
       drawInitialScreen();
-      backgroundMusic.play();
+      gameOverModal.style.display = 'none';
     }
 
     function drawInitialScreen() {
@@ -253,179 +480,209 @@
     }
 
     function drawBird() {
-      ctx.drawImage(birdImage, birdX - 25, birdY - 25, 40, 40);
+      ctx.drawImage(birdImage, birdX - birdWidth / 2, birdY - birdHeight / 2, birdWidth, birdHeight);
     }
 
     function drawObstacles() {
-      obstacles.forEach(ob => {
-        let y = ob.top;
-        while (y > 0) {
-          const h = Math.min(pipeImage.height, y);
-          ctx.save();
-          ctx.translate(ob.x + ob.width / 2, y - h / 2);
-          ctx.scale(1, -1);
-          ctx.drawImage(pipeImage, -ob.width / 2, -h / 2, ob.width, h);
-          ctx.restore();
-          y -= h;
-        }
+        obstacles.forEach(ob => {
+            // --- Dibujar Tubería Superior (Invertida) ---
+            let yTop = ob.top;
+            while (yTop > 0) {
+                const segmentHeight = Math.min(pipeImage.height, yTop);
+                ctx.save();
+                ctx.translate(ob.x + pipeWidth / 2, yTop - segmentHeight / 2);
+                ctx.scale(1, -1);
+                ctx.drawImage(pipeImage, -pipeWidth / 2, -segmentHeight / 2, pipeWidth, segmentHeight);
+                ctx.restore();
+                yTop -= segmentHeight;
+            }
 
-        let bottomY = ob.bottomY;
-        let remaining = canvas.height - bottomY;
-        y = bottomY;
-        while (remaining > 0) {
-          const h = Math.min(pipeImage.height, remaining);
-          ctx.drawImage(pipeImage, ob.x, y, ob.width, h);
-          y += h;
-          remaining -= h;
-        }
-      });
+            // --- Dibujar Tubería Inferior ---
+            let yBottom = ob.bottomY;
+            let remainingHeight = canvas.height - yBottom;
+            while (remainingHeight > 0) {
+                const segmentHeight = Math.min(pipeImage.height, remainingHeight);
+                ctx.drawImage(pipeImage, ob.x, yBottom, pipeWidth, segmentHeight);
+                yBottom += segmentHeight;
+                remainingHeight -= segmentHeight;
+            }
+        });
     }
 
+
     function updateObstacles() {
+      // Añadir nuevos obstáculos
       if (frame % spawnRate === 0) {
-        const gap = 150;
-        const top = Math.random() * 200 + 20;
+        const minTop = 60;
+        const maxTop = canvas.height - pipeGap - 60;
+        const topPipeHeight = Math.random() * (maxTop - minTop) + minTop;
+
         obstacles.push({
           x: canvas.width,
-          width: 40,
-          top: top,
-          bottomY: top + gap,
+          width: pipeWidth,
+          top: topPipeHeight,
+          bottomY: topPipeHeight + pipeGap,
           passed: false
         });
       }
 
+      // Mover obstáculos y actualizar puntaje
       obstacles.forEach(ob => {
         ob.x -= obstacleSpeed;
-        if (!ob.passed && ob.x + ob.width < birdX) {
+
+        if (!ob.passed && ob.x + ob.width < birdX - birdWidth / 2) {
           ob.passed = true;
           score++;
           scoreDisplay.textContent = `Puntaje: ${score}`;
+          // pointSound.play();
         }
       });
 
+      // Eliminar obstáculos que han salido
       obstacles = obstacles.filter(ob => ob.x + ob.width > 0);
     }
 
     function checkCollision() {
-      for (let ob of obstacles) {
-        if (
-          birdX + 15 > ob.x && birdX - 15 < ob.x + ob.width &&
-          (birdY - 15 < ob.top || birdY + 15 > ob.bottomY)
-        ) {
-          return true;
+        const birdRadius = birdWidth / 2 - 5;
+        const birdLeft = birdX - birdRadius;
+        const birdRight = birdX + birdRadius;
+        const birdTop = birdY - birdRadius;
+        const birdBottom = birdY + birdRadius;
+
+        // Colisión con límites superior/inferior
+        if (birdBottom > canvas.height || birdTop < 0) {
+            console.log("Collision with top/bottom boundary");
+            return true;
         }
-      }
-      if (birdY + 15 > canvas.height || birdY - 15 < 0) {
-        return true;
-      }
-      return false;
+
+        // Colisión con obstáculos
+        for (let ob of obstacles) {
+            const pipeRight = ob.x + ob.width;
+            if (birdRight > ob.x && birdLeft < pipeRight) {
+                if (birdTop < ob.top || birdBottom > ob.bottomY) {
+                    console.log("Collision with pipe");
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
-    function update() {
-      if (gameOver) return;
-      drawBackground();
-      birdVelocity += gravity;
-      birdY += birdVelocity;
-      drawBird();
-      updateObstacles();
-      drawObstacles();
+    function gameLoop() {
+        if (gameOver) return;
 
-      if (checkCollision()) {
-        gameOver = true;
-        birdImage.src = "MATERIAL/b2.png";
         drawBackground();
-        drawBird();
+        updateObstacles();
         drawObstacles();
-        deathSound.play();
-        setTimeout(() => {
-          document.getElementById('gameOverModal').style.display = 'flex';
-        }, 500);
-        return;
-      }
+        birdVelocity += gravity;
+        birdY += birdVelocity;
+        drawBird();
 
-      frame++;
-      requestAnimationFrame(update);
+        if (checkCollision()) {
+            gameOver = true;
+            deathSound.play();
+            backgroundMusic.pause();
+            gameOverModal.style.display = 'flex';
+            return;
+        }
+
+        frame++;
+        animationFrameId = requestAnimationFrame(gameLoop);
     }
 
     function jump() {
-      if (!gameStarted) {
-        gameStarted = true;
-        backgroundMusic.loop = true;
-        backgroundMusic.play();
-        update();
-      }
-      if (!gameOver) {
-        birdVelocity = jumpStrength;
-      }
+        // No permitir saltar si el juego terminó o la pantalla de carga está activa
+        if (gameOver || loadingScreen.style.display !== 'none') return;
+
+        if (!gameStarted) {
+            gameStarted = true;
+            birdVelocity = 0; // Resetea velocidad para el primer salto
+            backgroundMusic.loop = true;
+            backgroundMusic.volume = 0.5;
+            backgroundMusic.play();
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            gameLoop(); // Inicia el bucle del juego
+        }
+
+        birdVelocity = jumpStrength; // Aplica la fuerza del salto
+        jumpSound.play();
     }
 
-    document.getElementById('jumpButton').addEventListener('click', () => {
-      jump();
-      jumpSound.play();
-    });
+    // --- EVENT LISTENERS ---
 
+    // NUEVO: Salto al hacer clic/tocar en el canvas
+    canvas.addEventListener('click', jump);
+
+    // Salto con Tecla Espacio (se mantiene como alternativa)
     window.addEventListener('keydown', (e) => {
-      if (e.code === 'Space') {
-        jump();
-        jumpSound.play();
-      }
+        if (e.code === 'Space') {
+            e.preventDefault(); // Evita scroll
+            jump();
+        }
     });
 
-    document.getElementById('restartButton').addEventListener('click', () => {
-      deathSound.play();
-      document.getElementById('gameOverModal').style.display = 'none';
-      resetGame();
+    // Botón Reiniciar en Modal
+    restartButton.addEventListener('click', () => {
+        resetGame();
     });
 
-    document.getElementById('closeButton').addEventListener('click', (e) => {
-      deathSound.play();
+    // Botón Cerrar (enlace)
+    closeButton.addEventListener('click', (e) => {
+        deathSound.play();
     });
 
-    // 🧠 SKIN SYSTEM
+    // --- SKIN SYSTEM ---
     const skins = [
       { file: 'b1.png', unlockScore: 0 },
       { file: 'b22.png', unlockScore: 100 },
       { file: 'b3.png', unlockScore: 150 },
       { file: 'b4.png', unlockScore: 200 }
     ];
-    const skinMenu = document.getElementById('skinMenu');
-    const skinMenuButton = document.getElementById('skinMenuButton');
 
     skinMenuButton.addEventListener('click', () => {
-      skinMenu.style.display = skinMenu.style.display === 'flex' ? 'none' : 'flex';
-      loadSkins();
+        const isVisible = skinMenu.style.display === 'flex';
+        skinMenu.style.display = isVisible ? 'none' : 'flex';
+        if (!isVisible) {
+            loadSkins();
+        }
     });
 
     function loadSkins() {
-      skinMenu.innerHTML = '';
-      skins.forEach(skin => {
-        const div = document.createElement('div');
-        div.classList.add('skin-option');
-        if (highScore < skin.unlockScore) div.classList.add('locked');
-        const img = document.createElement('img');
-        img.src = `MATERIAL/${skin.file}`;
-        div.appendChild(img);
-        if (highScore >= skin.unlockScore) {
-          div.addEventListener('click', () => {
-            localStorage.setItem(`${playerName}_selectedSkin`, skin.file);
-            birdImage.src = `MATERIAL/${skin.file}`;
-            skinMenu.style.display = 'none';
-          });
-        }
-        skinMenu.appendChild(div);
-      });
+        skinMenu.innerHTML = '';
+        const currentHighScore = parseInt(localStorage.getItem(`${playerName}_flappyHighScore`)) || 0;
+
+        skins.forEach(skin => {
+            const div = document.createElement('div');
+            div.classList.add('skin-option');
+            const isLocked = currentHighScore < skin.unlockScore;
+
+            const img = document.createElement('img');
+            img.src = `MATERIAL/${skin.file}`;
+            img.alt = `Skin ${skin.file.split('.')[0]}`;
+            div.appendChild(img);
+
+            if (isLocked) {
+                div.classList.add('locked');
+                div.setAttribute('data-unlock-score', `Necesitas ${skin.unlockScore} pts`);
+                div.style.cursor = 'not-allowed';
+            } else {
+                div.addEventListener('click', () => {
+                    localStorage.setItem(`${playerName}_selectedSkin`, skin.file);
+                    birdImage.src = `MATERIAL/${skin.file}`;
+                    if (!gameStarted && !gameOver) {
+                       drawInitialScreen();
+                    }
+                    skinMenu.style.display = 'none';
+                });
+            }
+            skinMenu.appendChild(div);
+        });
     }
 
-    let assetsLoaded = 0;
-    [backgroundImage, birdImage, pipeImage].forEach(img => {
-      img.onload = () => {
-        assetsLoaded++;
-        if (assetsLoaded === 3) {
-          drawInitialScreen();
-        }
-      };
-    });
+    // --- INICIO ---
+    loadAssets();
 
   </script>
 </body>
 </html>
+
