@@ -64,10 +64,17 @@
     canvas {
       display: block;
       max-width: 100%;
-      max-height: 85vh; /* Aumentado un poco para aprovechar más pantalla */
-      border: 1px solid #333; /* Opcional: borde para ver límites */
+      max-height: 85vh;
+      border: 1px solid #333;
       cursor: pointer; /* Indica que el canvas es clickeable */
-      margin-bottom: 10px; /* Espacio debajo del canvas */
+      margin-bottom: 10px;
+      /* --- NUEVO: Evitar resaltado al tocar/hacer clic --- */
+      -webkit-tap-highlight-color: transparent; /* iOS/Android */
+      outline: none; /* Quitar borde de foco */
+      user-select: none; /* Evitar selección de texto */
+      -webkit-user-select: none; /* Safari */
+      -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* IE/Edge */
     }
 
     /* Contenedor para los textos de puntuación */
@@ -303,7 +310,6 @@
     const loadingScreen = document.getElementById('loadingScreen');
     const loadingText = document.getElementById('loadingText');
     const acceptButton = document.getElementById('acceptButton');
-    // const jumpButtonElement = document.getElementById('jumpButton'); // ELIMINADO
     const skinMenu = document.getElementById('skinMenu');
     const skinMenuButton = document.getElementById('skinMenuButton');
     const gameOverModal = document.getElementById('gameOverModal');
@@ -311,109 +317,121 @@
     const closeButton = document.getElementById('closeButton');
 
     // --- CONFIGURACIÓN DEL JUEGO ---
-    const playerName = 'Jugador1'; // Identificador único para guardar datos
+    const playerName = 'Jugador1';
     const gravity = 0.2;
-    const jumpStrength = -4.5; // Un poco más de salto
-    const birdX = 70; // Posición X fija del pájaro
+    const jumpStrength = -4.5;
+    const birdX = 70;
     const birdWidth = 40;
     const birdHeight = 40;
-    const pipeWidth = 50; // Ancho de las tuberías
-    const pipeGap = 140; // Espacio vertical entre tuberías
-    const obstacleSpeed = 2.5; // Velocidad de movimiento de los obstáculos
-    const spawnRate = 100; // Frames entre la aparición de nuevos obstáculos (menor = más rápido)
+    const pipeWidth = 50;
+    const pipeGap = 140;
+    const obstacleSpeed = 2.5;
+    const spawnRate = 100;
 
     // --- VARIABLES DE ESTADO DEL JUEGO ---
-    let birdY = canvas.height / 3; // Posición Y inicial
-    let birdVelocity = 0; // Velocidad vertical inicial
-    let obstacles = []; // Array para guardar los obstáculos
-    let frame = 0; // Contador de frames (para spawnear obstáculos)
+    let birdY = canvas.height / 3;
+    let birdVelocity = 0;
+    let obstacles = [];
+    let frame = 0;
     let score = 0;
     let highScore = parseInt(localStorage.getItem(`${playerName}_flappyHighScore`)) || 0;
     let lastScoreValue = parseInt(localStorage.getItem(`${playerName}_flappyLastScore`)) || 0;
     let gameOver = false;
-    let gameStarted = false; // El juego no empieza hasta el primer salto DESPUÉS de la carga
-    let animationFrameId = null; // ID para controlar el bucle de animación
+    let gameStarted = false;
+    let animationFrameId = null;
 
     // --- RECURSOS (IMÁGENES Y AUDIO) ---
     const backgroundImage = new Image();
-    const birdImage = new Image();
+    const birdImage = new Image(); // Esta se actualizará dinámicamente
     const pipeImage = new Image();
-    // const jumpButtonImage = new Image(); // ELIMINADO
+    const birdDeathImageSrc = 'MATERIAL/b2.png'; // Guarda la ruta de la imagen de muerte
 
     const backgroundMusic = new Audio();
     const deathSound = new Audio();
     const jumpSound = new Audio();
-    const pointSound = new Audio(); // Sonido al pasar un obstáculo (opcional)
+    const pointSound = new Audio();
 
     // --- GESTIÓN DE CARGA DE RECURSOS ---
     const assetsToLoad = [
       { type: 'image', element: backgroundImage, src: "MATERIAL/back55.png" },
-      { type: 'image', element: birdImage, src: null }, // Src se define después
+      { type: 'image', element: birdImage, src: null }, // Skin inicial se carga en loadAssets
       { type: 'image', element: pipeImage, src: "MATERIAL/tubo4.png" },
-      // { type: 'image', element: jumpButtonImage, src: jumpButtonElement.src }, // ELIMINADO
+      // Precargar imagen de muerte (opcional pero recomendado)
+      { type: 'image', element: new Image(), src: birdDeathImageSrc },
       { type: 'audio', element: backgroundMusic, src: 'MATERIAL/MI.MP3' },
       { type: 'audio', element: deathSound, src: 'MATERIAL/HIT2.MP3' },
       { type: 'audio', element: jumpSound, src: 'MATERIAL/salto1.MP3' },
-      // { type: 'audio', element: pointSound, src: 'MATERIAL/point.mp3' } // Descomenta si tienes sonido de punto
+      // { type: 'audio', element: pointSound, src: 'MATERIAL/point.mp3' }
     ];
 
     let assetsLoadedCount = 0;
-    // AJUSTADO: Se resta 1 porque eliminamos la imagen del botón
     const totalAssets = assetsToLoad.length;
 
     function assetLoadedCallback(asset) {
       assetsLoadedCount++;
       const percentage = Math.round((assetsLoadedCount / totalAssets) * 100);
-      // Asegura que el porcentaje no exceda 100 si hay algún error mínimo de redondeo
       const displayPercentage = Math.min(percentage, 100);
       loadingText.textContent = `Cargando... ${displayPercentage}%`;
       console.log(`Recurso cargado: ${asset.src || asset.element?.id || 'unknown'} (${assetsLoadedCount}/${totalAssets})`);
 
-      if (assetsLoadedCount >= totalAssets) { // Usar >= por si acaso
+      if (assetsLoadedCount >= totalAssets) {
         console.log("Todos los recursos cargados.");
-        loadingText.style.display = 'none'; // Oculta el texto "Cargando..."
-        acceptButton.style.display = 'block'; // Muestra el botón "Aceptar"
-        // Añade el listener al botón Aceptar AHORA que está visible
+        loadingText.style.display = 'none';
+        acceptButton.style.display = 'block';
         acceptButton.addEventListener('click', startGameAfterLoading, { once: true });
       }
     }
 
     function startGameAfterLoading() {
-        loadingScreen.style.display = 'none'; // Oculta toda la pantalla de carga
+        loadingScreen.style.display = 'none';
         updateScoreDisplays();
         drawInitialScreen();
-        // El juego realmente comenzará con la función jump() al tocar/hacer clic
     }
 
 
     function loadAssets() {
       console.log("Iniciando carga de recursos...");
-      loadingText.textContent = 'Cargando... 0%'; // Texto inicial
+      loadingText.textContent = 'Cargando... 0%';
 
+      // Cargar skin inicial para birdImage ANTES de añadir listeners
       const savedSkin = localStorage.getItem(`${playerName}_selectedSkin`) || 'b1.png';
       const birdImageSrc = `MATERIAL/${savedSkin}`;
-      birdImage.src = birdImageSrc; // Asigna src para empezar a cargar
+      // Encuentra el asset de birdImage y asigna el src
+      const birdAsset = assetsToLoad.find(a => a.element === birdImage);
+      if (birdAsset) {
+          birdAsset.src = birdImageSrc; // Actualiza el src en la lista
+          birdImage.src = birdImageSrc; // Asigna src al elemento Image real
+      } else {
+          console.error("No se encontró el asset de birdImage en assetsToLoad");
+          // Como fallback, carga la imagen directamente, pero no se contará en la carga
+          birdImage.src = birdImageSrc;
+      }
+
 
       assetsToLoad.forEach(asset => {
         const element = asset.element;
 
-        // Asignar SRC si es necesario
+        // Asignar SRC si es necesario (y no es el birdImage que ya tiene src)
         if (asset.type === 'image' && asset.src && element !== birdImage) {
             element.src = asset.src;
         } else if (asset.type === 'audio') {
             element.src = asset.src;
-            element.preload = 'auto'; // Intenta precargar
+            element.preload = 'auto';
         }
 
-        // Añadir listeners
+        // Añadir listeners (incluso para birdImage, ahora que tiene src)
         if (asset.type === 'image') {
+          // Comprobar si ya está completa (caché)
           if (element.complete) {
+            // Contar de inmediato si ya está cargada
+            // Usar setTimeout para evitar problemas de sincronización
             setTimeout(() => assetLoadedCallback(asset), 0);
           } else {
+            // Añadir listeners de carga y error
             element.onload = () => assetLoadedCallback(asset);
             element.onerror = () => {
               console.error(`Error cargando imagen: ${element.src}`);
-              assetLoadedCallback(asset);
+              assetLoadedCallback(asset); // Contar igual para no bloquear
             };
           }
         } else if (asset.type === 'audio') {
@@ -422,7 +440,7 @@
             console.error(`Error cargando audio: ${element.src}`, e);
             assetLoadedCallback(asset);
           }, { once: true });
-          element.load();
+          element.load(); // Iniciar carga explícitamente
         }
       });
     }
@@ -455,8 +473,9 @@
 
       updateScoreDisplays();
 
+      // IMPORTANTE: Resetear a la skin seleccionada, no a la de muerte
       const currentSkin = localStorage.getItem(`${playerName}_selectedSkin`) || 'b1.png';
-      birdImage.src = `MATERIAL/${currentSkin}`;
+      birdImage.src = `MATERIAL/${currentSkin}`; // Asegura usar la skin correcta
 
       backgroundMusic.pause();
       backgroundMusic.currentTime = 0;
@@ -466,13 +485,13 @@
         animationFrameId = null;
       }
 
-      drawInitialScreen();
+      drawInitialScreen(); // Dibuja el estado reseteado
       gameOverModal.style.display = 'none';
     }
 
     function drawInitialScreen() {
       drawBackground();
-      drawBird();
+      drawBird(); // Dibuja el pájaro con la skin seleccionada/inicial
     }
 
     function drawBackground() {
@@ -480,12 +499,13 @@
     }
 
     function drawBird() {
+      // Dibuja la imagen actual de birdImage (puede ser skin normal o de muerte)
       ctx.drawImage(birdImage, birdX - birdWidth / 2, birdY - birdHeight / 2, birdWidth, birdHeight);
     }
 
     function drawObstacles() {
         obstacles.forEach(ob => {
-            // --- Dibujar Tubería Superior (Invertida) ---
+            // Tubería Superior
             let yTop = ob.top;
             while (yTop > 0) {
                 const segmentHeight = Math.min(pipeImage.height, yTop);
@@ -496,8 +516,7 @@
                 ctx.restore();
                 yTop -= segmentHeight;
             }
-
-            // --- Dibujar Tubería Inferior ---
+            // Tubería Inferior
             let yBottom = ob.bottomY;
             let remainingHeight = canvas.height - yBottom;
             while (remainingHeight > 0) {
@@ -511,34 +530,23 @@
 
 
     function updateObstacles() {
-      // Añadir nuevos obstáculos
       if (frame % spawnRate === 0) {
         const minTop = 60;
         const maxTop = canvas.height - pipeGap - 60;
         const topPipeHeight = Math.random() * (maxTop - minTop) + minTop;
-
         obstacles.push({
-          x: canvas.width,
-          width: pipeWidth,
-          top: topPipeHeight,
-          bottomY: topPipeHeight + pipeGap,
-          passed: false
+          x: canvas.width, width: pipeWidth, top: topPipeHeight,
+          bottomY: topPipeHeight + pipeGap, passed: false
         });
       }
-
-      // Mover obstáculos y actualizar puntaje
       obstacles.forEach(ob => {
         ob.x -= obstacleSpeed;
-
         if (!ob.passed && ob.x + ob.width < birdX - birdWidth / 2) {
-          ob.passed = true;
-          score++;
+          ob.passed = true; score++;
           scoreDisplay.textContent = `Puntaje: ${score}`;
           // pointSound.play();
         }
       });
-
-      // Eliminar obstáculos que han salido
       obstacles = obstacles.filter(ob => ob.x + ob.width > 0);
     }
 
@@ -549,20 +557,12 @@
         const birdTop = birdY - birdRadius;
         const birdBottom = birdY + birdRadius;
 
-        // Colisión con límites superior/inferior
-        if (birdBottom > canvas.height || birdTop < 0) {
-            console.log("Collision with top/bottom boundary");
-            return true;
-        }
+        if (birdBottom > canvas.height || birdTop < 0) return true;
 
-        // Colisión con obstáculos
         for (let ob of obstacles) {
             const pipeRight = ob.x + ob.width;
             if (birdRight > ob.x && birdLeft < pipeRight) {
-                if (birdTop < ob.top || birdBottom > ob.bottomY) {
-                    console.log("Collision with pipe");
-                    return true;
-                }
+                if (birdTop < ob.top || birdBottom > ob.bottomY) return true;
             }
         }
         return false;
@@ -576,13 +576,21 @@
         drawObstacles();
         birdVelocity += gravity;
         birdY += birdVelocity;
+        // Dibujar el pájaro ANTES de chequear colisión en esta iteración
         drawBird();
 
+        // Chequear colisión DESPUÉS de mover y dibujar todo
         if (checkCollision()) {
             gameOver = true;
+            // --- NUEVO: Cambiar imagen y redibujar ---
+            birdImage.src = birdDeathImageSrc; // Cambia a imagen de muerte
+            drawBird(); // Dibuja inmediatamente la imagen de muerte en la última posición
+            // --- Fin Nuevo ---
             deathSound.play();
             backgroundMusic.pause();
+            // Mostrar modal DESPUÉS de redibujar el pájaro muerto
             gameOverModal.style.display = 'flex';
+            // Detener el bucle aquí
             return;
         }
 
@@ -591,50 +599,34 @@
     }
 
     function jump() {
-        // No permitir saltar si el juego terminó o la pantalla de carga está activa
         if (gameOver || loadingScreen.style.display !== 'none') return;
 
         if (!gameStarted) {
             gameStarted = true;
-            birdVelocity = 0; // Resetea velocidad para el primer salto
+            birdVelocity = 0;
             backgroundMusic.loop = true;
             backgroundMusic.volume = 0.5;
             backgroundMusic.play();
             if (animationFrameId) cancelAnimationFrame(animationFrameId);
-            gameLoop(); // Inicia el bucle del juego
+            gameLoop();
         }
 
-        birdVelocity = jumpStrength; // Aplica la fuerza del salto
+        birdVelocity = jumpStrength;
         jumpSound.play();
     }
 
     // --- EVENT LISTENERS ---
-
-    // NUEVO: Salto al hacer clic/tocar en el canvas
     canvas.addEventListener('click', jump);
-
-    // Salto con Tecla Espacio (se mantiene como alternativa)
     window.addEventListener('keydown', (e) => {
-        if (e.code === 'Space') {
-            e.preventDefault(); // Evita scroll
-            jump();
-        }
+        if (e.code === 'Space') { e.preventDefault(); jump(); }
     });
-
-    // Botón Reiniciar en Modal
-    restartButton.addEventListener('click', () => {
-        resetGame();
-    });
-
-    // Botón Cerrar (enlace)
-    closeButton.addEventListener('click', (e) => {
-        deathSound.play();
-    });
+    restartButton.addEventListener('click', resetGame);
+    closeButton.addEventListener('click', (e) => { deathSound.play(); });
 
     // --- SKIN SYSTEM ---
     const skins = [
       { file: 'b1.png', unlockScore: 0 },
-      { file: 'b22.png', unlockScore: 100 },
+      { file: 'b22.png', unlockScore: 100 }, // Asegúrate que este archivo exista
       { file: 'b3.png', unlockScore: 150 },
       { file: 'b4.png', unlockScore: 200 }
     ];
@@ -642,25 +634,20 @@
     skinMenuButton.addEventListener('click', () => {
         const isVisible = skinMenu.style.display === 'flex';
         skinMenu.style.display = isVisible ? 'none' : 'flex';
-        if (!isVisible) {
-            loadSkins();
-        }
+        if (!isVisible) loadSkins();
     });
 
     function loadSkins() {
         skinMenu.innerHTML = '';
         const currentHighScore = parseInt(localStorage.getItem(`${playerName}_flappyHighScore`)) || 0;
-
         skins.forEach(skin => {
             const div = document.createElement('div');
             div.classList.add('skin-option');
             const isLocked = currentHighScore < skin.unlockScore;
-
             const img = document.createElement('img');
             img.src = `MATERIAL/${skin.file}`;
             img.alt = `Skin ${skin.file.split('.')[0]}`;
             div.appendChild(img);
-
             if (isLocked) {
                 div.classList.add('locked');
                 div.setAttribute('data-unlock-score', `Necesitas ${skin.unlockScore} pts`);
@@ -668,10 +655,8 @@
             } else {
                 div.addEventListener('click', () => {
                     localStorage.setItem(`${playerName}_selectedSkin`, skin.file);
-                    birdImage.src = `MATERIAL/${skin.file}`;
-                    if (!gameStarted && !gameOver) {
-                       drawInitialScreen();
-                    }
+                    birdImage.src = `MATERIAL/${skin.file}`; // Cambia imagen actual
+                    if (!gameStarted && !gameOver) drawInitialScreen(); // Redibuja si el juego no ha empezado
                     skinMenu.style.display = 'none';
                 });
             }
@@ -685,4 +670,5 @@
   </script>
 </body>
 </html>
+
 
