@@ -46,7 +46,7 @@
       background-size: contain;
       background-position: center;
       background-repeat: no-repeat;
-      background-color: #52abff;
+      background-color: #0082d8;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -65,21 +65,25 @@
     }
 
     #acceptButton {
-      margin-top: auto; 
-      margin-bottom: 5vh; 
-      padding: 10px 20px;
-      font-size: 1em;
-      background-color: #7F7F7F;
-      color: white;
-      border: 2px solid #373737;
-      border-top-color: #BCBCBC;
-      border-left-color: #BCBCBC;
-      border-radius: 0;
-      font-family: 'Press Start 2P', cursive;
-      text-shadow: 1px 1px #2A2A2A;
-      cursor: pointer;
-      display: none;
-    }
+  position: absolute;
+  left: 50%;
+  bottom: 23vh; /* ajusta esto para colocarlo "un poco hacia abajo" */
+  transform: translateX(-50%);
+  
+  padding: 10px 20px;
+  font-size: 1em;
+  background-color: #7F7F7F;
+  color: white;
+  border: 2px solid #373737;
+  border-top-color: #BCBCBC;
+  border-left-color: #BCBCBC;
+  border-radius: 0;
+  font-family: 'Press Start 2P', cursive;
+  text-shadow: 1px 1px #2A2A2A;
+  cursor: pointer;
+  display: none;
+}
+
     #acceptButton:active {
         background-color: #5E5E5E;
         border-top-color: #373737;
@@ -239,7 +243,7 @@
         text-align: center;
         /* transform: translateX(-50%); */ /* Ya no es necesario con left:0, right:0 y text-align:center */
         color: rgba(220, 220, 220, 0.7);
-        font-size: 8px;
+        font-size: 12px;
         text-shadow: 1px 1px #2A2A2A;
         z-index: 1000;
         user-select: none;
@@ -490,6 +494,8 @@
   </script>
 </body>
 </html>
+
+
 
 
 
