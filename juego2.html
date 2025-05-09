@@ -1,432 +1,787 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Flappy Bird</title>
-  <style>
-    body {
-      margin: 0;
-      background-color: #000000;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      font-family: sans-serif;
-      background-image: url('MATERIAL/88.png');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-    }
+ <meta charset="UTF-8" />
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+ <title>Flappy Bird: Aventura de Llaves</title>
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+ <style>
+   /* Reset básico y configuración del body */
+   * {
+       box-sizing: border-box;
+       margin: 0;
+       padding: 0;
+   }
 
-    canvas {
-      display: block;
-    }
+   html, body {
+       height: 100%;
+       overflow: hidden; /* Prevenir scroll general */
+       font-family: 'Press Start 2P', cursive;
+   }
 
-    #jumpButton {
-      margin-top: 20px;
-      width: 190px;
-      height: 90px;
-      cursor: pointer;
-      transition: transform 0.1s;
-      background-color: #000000;
-      border-radius: 20px;
-    }
+   body {
+     background-color: #000000;
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     justify-content: center;
+     padding: 5px 0;
+     min-height: 100%;
+     background-image: url('MATERIAL/NETHER/back 4.png'); /* Asegúrate que esta ruta sea correcta */
+     background-size: cover;
+     background-position: center;
+     background-repeat: no-repeat;
+   }
 
-    #jumpButton:active {
-      transform: scale(0.95);
-    }
+   /* --- ESTILOS PANTALLA DE CARGA --- */
+   #loadingScreen {
+     position: fixed;
+     top: 0;
+     left: 0;
+     width: 100vw;
+     height: 100vh;
+     background-image: url('MATERIAL/NETHER/LOAD.png'); /* Asegúrate que esta ruta sea correcta */
+     background-size: contain;
+     background-position: center;
+     background-repeat: no-repeat;
+     background-color: #8c0000; 
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     justify-content: center; /* Centra el texto de carga */
+     padding: 20px;
+     box-sizing: border-box;
+     z-index: 10000;
+   }
 
-    #score {
-      position: absolute;
-      top: 10px;
-      font-size: 24px;
-      font-weight: bold;
-      color: white;
-      text-shadow: 2px 2px 4px #000;
-    }
+   #loadingText {
+     font-size: 1.5em;
+     text-shadow: 2px 2px #373737;
+     color: white;
+     text-align: center;
+     margin-bottom: 20px;
+   }
 
-    #highScore {
-      position: absolute;
-      top: 40px;
-      font-size: 18px;
-      color: #ddd;
-      text-shadow: 2px 2px 4px #000;
-    }
+   #acceptButton {
+     position: absolute;
+     left: 50%;
+     bottom: 23vh;
+     transform: translateX(-50%);
+     padding: 10px 20px;
+     font-size: 1em;
+     background-color: #7F7F7F;
+     color: white;
+     border: 2px solid #373737;
+     border-top-color: #BCBCBC;
+     border-left-color: #BCBCBC;
+     border-radius: 0;
+     font-family: 'Press Start 2P', cursive;
+     text-shadow: 1px 1px #2A2A2A;
+     cursor: pointer;
+     display: none;
+   }
 
-    #lastScore {
-      position: absolute;
-      top: 70px;
-      font-size: 18px;
-      color: #bbb;
-      text-shadow: 2px 2px 4px #000;
-    }
+   #acceptButton:active {
+       background-color: #5E5E5E;
+       border-top-color: #373737;
+       border-left-color: #373737;
+       border-bottom-color: #BCBCBC;
+       border-right-color: #BCBCBC;
+   }
+   /* --- FIN ESTILOS PANTALLA DE CARGA --- */
 
-    #gameOverModal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.7);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 999;
-    }
+   /* Contenedor de Puntuaciones (Estilo Minecraft) */
+   #scoreContainer {
+       width: 100%;
+       max-width: 360px;
+       display: flex;
+       justify-content: space-around;
+       align-items: center;
+       padding: 10px 8px;
+       background-color: #7F7F7F;
+       border: 2px solid #373737;
+       border-top: 2px solid #BCBCBC;
+       border-left: 2px solid #BCBCBC;
+       border-radius: 0;
+       font-family: 'Press Start 2P', cursive;
+       color: white;
+       text-shadow: 1px 1px #2A2A2A;
+       margin-bottom: 10px;
+       z-index: 10;
+       order: 1;
+       flex-shrink: 0;
+   }
 
-    .modal-content {
-      background-color: white;
-      padding: 30px;
-      border-radius: 15px;
-      text-align: center;
-      box-shadow: 0 0 10px #000;
-    }
+   #scoreDisplay, #highScoreDisplay, #lastScoreDisplay {
+     font-size: 10px;
+     font-weight: normal;
+     margin: 0 3px;
+   }
+   #scoreDisplay::after, #highScoreDisplay::after {
+       content: "";
+       margin: 0;
+   }
 
-    .modal-content h2 {
-      margin-bottom: 20px;
-      font-size: 28px;
-      color: #333;
-    }
 
-    #restartButton {
-      padding: 10px 20px;
-      font-size: 18px;
-      background-color: #5e9e0b;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-    }
+   /* Canvas del Juego */
+   canvas {
+     display: block; width: 100%; max-width: 360px; height: auto;
+     aspect-ratio: 340 / 580; max-height: 75vh;
+     border: 2px solid #373737;
+     cursor: pointer; -webkit-tap-highlight-color: transparent;
+     outline: none; user-select: none; -webkit-user-select: none;
+     -moz-user-select: none; -ms-user-select: none;
+     order: 2; flex-shrink: 0;
+     image-rendering: pixelated;
+   }
 
-    #restartButton:hover {
-      background-color: #4c8208;
-    }
+   /* Controles Inferiores (Estilo Minecraft) */
+   #bottomControls {
+       width: 100%; max-width: 360px; display: flex;
+       justify-content: space-between; padding: 0;
+       margin-top: 10px; z-index: 1000; order: 3; flex-shrink: 0;
+   }
 
-    #skinMenuButton {
-      position: fixed;
-      bottom: 40px;
-      left: 20px;
-      z-index: 1000;
-      padding: 10px 14px;
-      background-color: #0077ff;
-      color: white;
-      font-size: 14px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
+   #skinMenuButton, #closeButton button {
+       background-color: #7F7F7F;
+       border: 2px solid #373737;
+       border-top-color: #BCBCBC;
+       border-left-color: #BCBCBC;
+       border-radius: 0;
+       color: white;
+       font-family: 'Press Start 2P', cursive;
+       font-size: 10px;
+       text-shadow: 1px 1px #2A2A2A;
+       padding: 12px 10px;
+       text-align: center;
+       flex-grow: 1;
+       margin: 0;
+       cursor: pointer;
+   }
+     #skinMenuButton { margin-right: 2px; }
+     #closeButton button { width: 100%;}
+     #closeButton { flex-grow: 1; display: block; margin-left: 2px; }
 
-    #skinMenu {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: rgba(0,0,0,0.85);
-      padding: 20px;
-      border-radius: 12px;
-      display: none;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 15px;
-      z-index: 1001;
-    }
+     #skinMenuButton:active, #closeButton button:active {
+         background-color: #5E5E5E;
+         border-top-color: #373737;
+         border-left-color: #373737;
+         border-bottom-color: #BCBCBC;
+         border-right-color: #BCBCBC;
+         transform: none;
+     }
 
-    .skin-option {
-      width: 60px;
-      height: 60px;
-      border-radius: 10px;
-      overflow: hidden;
-      cursor: pointer;
-      border: 2px solid white;
-    }
+   /* Menú de Skins (Estilo Minecraft) */
+   #skinMenu {
+     position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+     background-color: rgba(60,60,60,0.90);
+     padding: 20px; border-radius: 0;
+     display: none; flex-wrap: wrap; justify-content: center; gap: 15px; /* Aumentado gap */
+     z-index: 1001;
+     border: 2px solid #2A2A2A;
+     border-top-color: #A0A0A0;
+     border-left-color: #A0A0A0;
+     width: 90%; max-width: 320px; /* Un poco más ancho para el texto */
+     font-family: 'Press Start 2P', cursive;
+   }
+   .skin-option {
+     width: 60px; /* Un poco más ancho para el texto debajo */
+     border-radius: 0;
+     cursor: pointer;
+     border: 2px solid #2A2A2A;
+     transition: none;
+     position: relative;
+     display: flex; /* Para centrar contenido */
+     flex-direction: column; /* Apilar imagen y texto */
+     align-items: center; /* Centrar horizontalmente */
+     padding-bottom: 5px; /* Espacio para el texto */
+   }
+   .skin-option:hover { border-color: #FFFFFF; }
+   .skin-option img {
+       width: 50px; /* Tamaño original de la imagen */
+       height: 50px;
+       object-fit: contain;
+       display: block;
+       image-rendering: pixelated;
+       margin-bottom: 5px; /* Espacio entre imagen y texto de costo */
+   }
+  .skin-unlock-cost {
+       font-size: 8px;
+       color: white;
+       text-shadow: 1px 1px #2A2A2A;
+       text-align: center;
+       line-height: 1.2; /* Mejorar legibilidad */
+   }
+   .locked {
+       filter: grayscale(100%) brightness(0.5);
+       opacity: 0.7;
+       cursor: not-allowed;
+       border-color: #4F4F4F;
+   }
+   .locked:hover { border-color: #4F4F4F; }
+   /* Eliminado .locked::after y .locked:hover::after ya que el costo se muestra directamente */
 
-    .skin-option img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
 
-    .locked {
-      filter: grayscale(100%);
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-  </style>
+   /* Modal Game Over / Game Won / Objective (Estilo Minecraft) */
+   #gameOverModal, #gameWonModal, #objectiveModal { /* Añadido #objectiveModal aquí */
+     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+     background-color: rgba(0, 0, 0, 0.75); display: none; justify-content: center;
+     align-items: center; z-index: 999;
+   }
+   .modal-content {
+     background-color: #7F7F7F;
+     padding: 25px; border-radius: 0; text-align: center;
+     color: white;
+     border: 2px solid #373737;
+     border-top-color: #BCBCBC;
+     border-left-color: #BCBCBC;
+     font-family: 'Press Start 2P', cursive;
+     text-shadow: 1px 1px #2A2A2A;
+     width: 90%;
+     max-width: 300px; /* Ancho máximo para el contenido del modal */
+   }
+   .modal-content h2 { margin-top: 0; margin-bottom: 20px; font-size: 16px; }
+   .modal-content p { margin-bottom: 20px; font-size: 12px; line-height: 1.5; }
+   #restartButton, #proceedButton, #objectiveUnderstoodButton { /* Añadido #objectiveUnderstoodButton */
+     padding: 10px 15px; font-size: 12px; background-color: #5E5E5E; color: white;
+     border: 2px solid #373737; border-top-color: #BCBCBC; border-left-color: #BCBCBC;
+     border-radius: 0; cursor: pointer; font-family: 'Press Start 2P', cursive;
+     text-shadow: 1px 1px #2A2A2A;
+     display: inline-block; /* Para que el padding funcione bien */
+     margin-top: 10px; /* Espacio si hay texto arriba */
+   }
+   #restartButton:active, #proceedButton:active, #objectiveUnderstoodButton:active { /* Añadido #objectiveUnderstoodButton */
+       background-color: #4F4F4F; border-top-color: #373737; border-left-color: #373737;
+       border-bottom-color: #BCBCBC; border-right-color: #BCBCBC;
+   }
+
+   /* Estilos para Créditos (Estilo Minecraft) */
+   #credits {
+       position: fixed;
+       bottom: 5px;
+       left: 0;
+       right: 0;
+       text-align: center;
+       color: rgba(220, 220, 220, 0.7);
+       font-size: 8px;
+       text-shadow: 1px 1px #2A2A2A;
+       z-index: 1000;
+       user-select: none;
+       -webkit-user-select: none;
+       -moz-user-select: none;
+       -ms-user-select: none;
+       pointer-events: none;
+       font-family: 'Press Start 2P', cursive;
+   }
+
+ </style>
 </head>
 <body>
-  <div id="score">Puntaje: 0</div>
-  <div id="highScore">Mejor puntaje: 0</div>
-  <div id="lastScore">Último puntaje: 0</div>
-  <canvas id="gameCanvas" width="340" height="580"></canvas>
-  <img id="jumpButton" src="MATERIAL/boton.png" alt="Saltar" />
+ <div id="loadingScreen">
+   <p id="loadingText">Cargando...</p>
+   <button id="acceptButton">Aceptar</button>
+ </div>
 
-  <button id="skinMenuButton">🏁</button>
-  <div id="skinMenu"></div>
+ <div id="objectiveModal">
+   <div class="modal-content">
+     <h2>Objetivo del Nivel</h2>
+     <p>¡Recolecta 20 llaves para ganar y pasar al siguiente nivel!</p>
+     <button id="objectiveUnderstoodButton">¡Entendido!</button>
+   </div>
+ </div>
 
-  <a href="panel.html" id="closeButton" style="position: fixed; bottom: 40px; right: 20px; z-index: 1000;">
-    <button style="padding: 8px 12px; font-size: 14px; border-radius: 8px; background-color: #e00b0b; color: white; border: none; cursor: pointer;">
-      🎲
-    </button>
-  </a>
+ <div id="scoreContainer">
+     <div id="scoreDisplay">Llaves: 0 / 20</div>
+     <div id="highScoreDisplay">Máx Llaves: 0</div>
+     <div id="lastScoreDisplay">Últ Llaves: 0</div>
+ </div>
 
-  <p style="margin-top: 15px; color: rgb(197, 196, 196); font-weight: bold; text-shadow: 1px 1px 2px #000;">
-    Hecho por Moises Navarrete
-  </p>
+ <canvas id="gameCanvas" width="340" height="580"></canvas>
 
-  <div id="gameOverModal">
-    <div class="modal-content">
-      <h2>¡Has Muerto!</h2>
-      <button id="restartButton">Respawn</button>
-    </div>
-  </div>
+ <div id="bottomControls">
+       <button id="skinMenuButton" title="Cambiar Skin">Skins 🏁</button>
+       <a href="panel.html" id="closeButton" title="Volver al Panel">
+           <button>Salir 🎲</button>
+       </a>
+   </div>
 
-  <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const scoreDisplay = document.getElementById('score');
-    const highScoreDisplay = document.getElementById('highScore');
-    const lastScoreDisplay = document.getElementById('lastScore');
+   <p id="credits">Hecho por Moises Navarrete</p>
 
-    const backgroundImage = new Image();
-    backgroundImage.src = "MATERIAL/NETHER/Back1.png";
+ <div id="skinMenu"></div>
 
-    const birdImage = new Image();
-    const savedSkin = localStorage.getItem('selectedSkin') || 'b1.png';
-    birdImage.src = `MATERIAL/NETHER/${savedSkin}`;
+ <div id="gameOverModal">
+   <div class="modal-content">
+     <h2>¡Has Muerto!</h2>
+     <button id="restartButton">Respawn</button>
+   </div>
+ </div>
 
-    const pipeImage = new Image();
-    pipeImage.src = "MATERIAL/NETHER/Tubo2.png";
+ <div id="gameWonModal">
+   <div class="modal-content">
+     <h2>¡Has Ganado!</h2>
+     <p id="finalKeyScore">Llaves Recogidas: 20</p>
+     <button id="proceedButton">Continuar</button>
+   </div>
+ </div>
 
-    let birdY = 150;
-    let birdVelocity = 10;
-    const gravity = 0.2;
-    const jumpStrength = -4;
-    const birdX = 50;
-    let obstacles = [];
-    let frame = 0;
-    let score = 0;
-    let gameOver = false;
-    let gameStarted = false;
-    let highScore = parseInt(localStorage.getItem('flappyHighScore')) || 0;
-    highScoreDisplay.textContent = `Mejor puntaje: ${highScore}`;
+ <script>
+   // --- REFERENCIAS A ELEMENTOS DEL DOM ---
+   const canvas = document.getElementById('gameCanvas');
+   const ctx = canvas.getContext('2d');
+   const scoreDisplay = document.getElementById('scoreDisplay');
+   const highScoreDisplay = document.getElementById('highScoreDisplay');
+   const lastScoreDisplay = document.getElementById('lastScoreDisplay');
+   const loadingScreen = document.getElementById('loadingScreen');
+   const loadingText = document.getElementById('loadingText');
+   const acceptButton = document.getElementById('acceptButton');
+   const skinMenu = document.getElementById('skinMenu');
+   const skinMenuButton = document.getElementById('skinMenuButton');
+   const gameOverModal = document.getElementById('gameOverModal');
+   const restartButton = document.getElementById('restartButton');
+   const gameWonModal = document.getElementById('gameWonModal');
+   const proceedButton = document.getElementById('proceedButton');
+   const finalKeyScoreDisplay = document.getElementById('finalKeyScore');
+   const closeButton = document.getElementById('closeButton');
+   const objectiveModal = document.getElementById('objectiveModal'); // Nuevo
+   const objectiveUnderstoodButton = document.getElementById('objectiveUnderstoodButton'); // Nuevo
 
-    const obstacleSpeed = 5;
-    const spawnRate = Math.floor(120 * (2 / obstacleSpeed));
 
-    const backgroundMusic = new Audio('MATERIAL/NETHER/Back.MP3');
-    const deathSound = new Audio('MATERIAL/NETHER/HIT.MP3');
-    const jumpSound = new Audio('MATERIAL/NETHER/salto1.MP3');
+   // --- CONFIGURACIÓN DEL JUEGO ---
+   const playerName = 'Jugador1';
+   const gravity = 0.2;
+   const jumpStrength = -4.5;
+   const birdX = 70;
+   const birdWidth = 40;
+   const birdHeight = 40;
+   const pipeWidth = 50;
+   const pipeGap = 140;
+   const obstacleSpeed = 2.5;
+   const spawnRate = 130;
 
-    function resetGame() {
-      if (score > highScore) {
-        highScore = score;
-        localStorage.setItem('flappyHighScore', highScore);
-      }
-      highScoreDisplay.textContent = `Mejor puntaje: ${highScore}`;
-      lastScoreDisplay.textContent = `Último puntaje: ${score}`;
-      birdY = 150;
-      birdVelocity = 0;
-      obstacles = [];
-      frame = 0;
-      score = 0;
-      gameOver = false;
-      gameStarted = false;
-      scoreDisplay.textContent = 'Puntaje: 0';
-      birdImage.src = `MATERIAL/NETHER/${localStorage.getItem('selectedSkin') || 'b1.png'}`;
-      drawInitialScreen();
-      backgroundMusic.play();
-    }
+   const keyWidth = 25;
+   const keyHeight = 25;
+   const keysToWin = 20;
 
-    function drawInitialScreen() {
-      drawBackground();
-      drawBird();
-    }
+   // --- VARIABLES DE ESTADO DEL JUEGO ---
+   let birdY = canvas.height / 3;
+   let birdVelocity = 0;
+   let obstacles = [];
+   let frame = 0;
+   let keysCollected = 0;
+   let highScore = parseInt(localStorage.getItem(`${playerName}_flappyKeyHighScore`)) || 0;
+   let lastScoreValue = parseInt(localStorage.getItem(`${playerName}_flappyLastKeyScore`)) || 0;
+   let gameOver = false;
+   let gameWon = false;
+   let gameStarted = false;
+   let animationFrameId = null;
+   let objectiveModalDismissed = false; // Nuevo flag
 
-    function drawBackground() {
-      ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
-    }
+   // --- RECURSOS (IMÁGENES Y AUDIO) ---
+   const backgroundImage = new Image();
+   const birdImage = new Image();
+   const pipeImage = new Image();
+   const keyImage = new Image();
+   const birdDeathImageSrc = 'MATERIAL/NETHER/b2.png'; // Asegúrate que esta ruta sea correcta
 
-    function drawBird() {
-      ctx.drawImage(birdImage, birdX - 25, birdY - 25, 40, 40);
-    }
+   const backgroundMusic = new Audio();
+   const deathSound = new Audio();
+   const jumpSound = new Audio();
+   const pointSound = new Audio();
+   const winSound = new Audio(); // Opcional
 
-    function drawObstacles() {
-      obstacles.forEach(ob => {
-        let y = ob.top;
-        while (y > 0) {
-          const h = Math.min(pipeImage.height, y);
-          ctx.save();
-          ctx.translate(ob.x + ob.width / 2, y - h / 2);
-          ctx.scale(1, -1);
-          ctx.drawImage(pipeImage, -ob.width / 2, -h / 2, ob.width, h);
-          ctx.restore();
-          y -= h;
-        }
+   // --- GESTIÓN DE CARGA DE RECURSOS ---
+   const assetsToLoad = [
+     { type: 'image', element: backgroundImage, src: "MATERIAL/NETHER/Back1.png" }, // Asegúrate que esta ruta sea correcta
+     { type: 'image', element: birdImage, src: null },
+     { type: 'image', element: pipeImage, src: "MATERIAL/NETHER/Tubo2.png" }, // Asegúrate que esta ruta sea correcta
+     { type: 'image', element: keyImage, src: "MATERIAL/NETHER/key.png" }, // Asegúrate que esta imagen exista y la ruta sea correcta
+     { type: 'image', element: new Image(), src: birdDeathImageSrc },
+     { type: 'audio', element: backgroundMusic, src: 'MATERIAL/NETHER/Back.MP3' }, // Asegúrate que esta ruta sea correcta
+     { type: 'audio', element: deathSound, src: 'MATERIAL/NETHER/HIT.MP3' }, // Asegúrate que esta ruta sea correcta
+     { type: 'audio', element: jumpSound, src: 'MATERIAL/NETHER/salto1.MP3' }, // Asegúrate que esta ruta sea correcta
+     { type: 'audio', element: pointSound, src: 'MATERIAL/NETHER/point.mp3' }, // Asegúrate que este audio exista y la ruta sea correcta
+     // { type: 'audio', element: winSound, src: 'MATERIAL/NETHER/win.mp3' } // Opcional
+   ];
 
-        let bottomY = ob.bottomY;
-        let remaining = canvas.height - bottomY;
-        y = bottomY;
-        while (remaining > 0) {
-          const h = Math.min(pipeImage.height, remaining);
-          ctx.drawImage(pipeImage, ob.x, y, ob.width, h);
-          y += h;
-          remaining -= h;
-        }
-      });
-    }
+   let assetsLoadedCount = 0;
+   const totalAssets = assetsToLoad.length;
 
-    function updateObstacles() {
-      if (frame % spawnRate === 0) {
-        const gap = 150;
-        const top = Math.random() * 200 + 20;
-        obstacles.push({
-          x: canvas.width,
-          width: 40,
-          top: top,
-          bottomY: top + gap,
-          passed: false
-        });
-      }
+   function assetLoadedCallback(asset) {
+     assetsLoadedCount++;
+     const percentage = Math.round((assetsLoadedCount / totalAssets) * 100);
+     const displayPercentage = Math.min(percentage, 100);
+     loadingText.textContent = `Cargando... ${displayPercentage}%`;
 
-      obstacles.forEach(ob => {
-        ob.x -= obstacleSpeed;
-        if (!ob.passed && ob.x + ob.width < birdX) {
-          ob.passed = true;
-          score++;
-          scoreDisplay.textContent = `Puntaje: ${score}`;
-        }
-      });
+     if (assetsLoadedCount >= totalAssets) {
+       console.log("Todos los recursos cargados.");
+       loadingText.style.display = 'none';
+       acceptButton.style.display = 'block';
+       acceptButton.addEventListener('click', startGameAfterLoading, { once: true });
+     }
+   }
 
-      obstacles = obstacles.filter(ob => ob.x + ob.width > 0);
-    }
+   function startGameAfterLoading() {
+       loadingScreen.style.display = 'none';
+       updateScoreDisplays();
+       // Mostrar modal de objetivo en lugar de iniciar el juego directamente
+       objectiveModal.style.display = 'flex';
+   }
 
-    function checkCollision() {
-      for (let ob of obstacles) {
-        if (
-          birdX + 15 > ob.x && birdX - 15 < ob.x + ob.width &&
-          (birdY - 15 < ob.top || birdY + 15 > ob.bottomY)
-        ) {
-          return true;
-        }
-      }
-      if (birdY + 15 > canvas.height || birdY - 15 < 0) {
-        return true;
-      }
-      return false;
-    }
+   function prepareGameEnvironment() {
+       objectiveModal.style.display = 'none';
+       objectiveModalDismissed = true;
+       drawInitialScreen(); // Dibujar el pájaro, listo para el primer salto
+   }
 
-    function update() {
-      if (gameOver) return;
-      drawBackground();
-      birdVelocity += gravity;
-      birdY += birdVelocity;
-      drawBird();
-      updateObstacles();
-      drawObstacles();
 
-      if (checkCollision()) {
-        gameOver = true;
-        birdImage.src = "MATERIAL/NETHER/b2.png";
-        drawBackground();
-        drawBird();
-        drawObstacles();
-        deathSound.play();
-        setTimeout(() => {
-          document.getElementById('gameOverModal').style.display = 'flex';
-        }, 500);
-        return;
-      }
+   function loadAssets() {
+     console.log("Iniciando carga de recursos...");
+     loadingText.textContent = 'Cargando... 0%';
+     const savedSkin = localStorage.getItem(`${playerName}_selectedSkin`) || 'b1.png';
+     const birdImageSrc = `MATERIAL/NETHER/${savedSkin}`;
+     const birdAsset = assetsToLoad.find(a => a.element === birdImage);
+     if (birdAsset) { birdAsset.src = birdImageSrc; birdImage.src = birdImageSrc; }
+     else { console.error("Asset birdImage no encontrado"); birdImage.src = birdImageSrc; }
 
-      frame++;
-      requestAnimationFrame(update);
-    }
+     assetsToLoad.forEach(asset => {
+       const element = asset.element;
+       if (asset.type === 'image' && asset.src && element !== birdImage) { element.src = asset.src; }
+       else if (asset.type === 'audio') { element.src = asset.src; element.preload = 'auto'; }
 
-    function jump() {
-      if (!gameStarted) {
-        gameStarted = true;
-        backgroundMusic.loop = true;
-        backgroundMusic.play();
-        update();
-      }
-      if (!gameOver) {
-        birdVelocity = jumpStrength;
-      }
-    }
+       if (asset.type === 'image') {
+         if (element.complete) { setTimeout(() => assetLoadedCallback(asset), 0); }
+         else {
+           element.onload = () => assetLoadedCallback(asset);
+           element.onerror = (e) => {
+               console.error(`Error cargando imagen: ${element.src}`, e);
+               assetLoadedCallback(asset);
+           };
+         }
+       } else if (asset.type === 'audio') {
+         element.addEventListener('canplaythrough', () => assetLoadedCallback(asset), { once: true });
+         element.addEventListener('error', (e) => { console.error(`Error cargando audio: ${element.src}`, e); assetLoadedCallback(asset); }, { once: true });
+         element.load();
+       }
+     });
+   }
+   // --- FIN GESTIÓN DE CARGA ---
 
-    document.getElementById('jumpButton').addEventListener('click', () => {
-      jump();
-      jumpSound.play();
-    });
+   // --- FUNCIONES PRINCIPALES DEL JUEGO ---
+   function updateScoreDisplays() {
+       scoreDisplay.textContent = `Llaves: ${keysCollected} / ${keysToWin}`;
+       highScoreDisplay.textContent = `Máx: ${highScore}`;
+       lastScoreDisplay.textContent = `Últ: ${lastScoreValue}`;
+   }
 
-    window.addEventListener('keydown', (e) => {
-      if (e.code === 'Space') {
-        jump();
-        jumpSound.play();
-      }
-    });
+   function resetGame() {
+     lastScoreValue = keysCollected;
+     localStorage.setItem(`${playerName}_flappyLastKeyScore`, lastScoreValue);
+     if (keysCollected > highScore) {
+         highScore = keysCollected;
+         localStorage.setItem(`${playerName}_flappyKeyHighScore`, highScore);
+     }
 
-    document.getElementById('restartButton').addEventListener('click', () => {
-      deathSound.play();
-      document.getElementById('gameOverModal').style.display = 'none';
-      resetGame();
-    });
+     birdY = canvas.height / 3;
+     birdVelocity = 0;
+     obstacles = [];
+     frame = 0;
+     keysCollected = 0;
+     gameOver = false;
+     gameWon = false;
+     gameStarted = false;
+     // objectiveModalDismissed se mantiene, el usuario ya vio el objetivo en esta sesión.
 
-    document.getElementById('closeButton').addEventListener('click', (e) => {
-      deathSound.play();
-    });
+     updateScoreDisplays();
+     const currentSkin = localStorage.getItem(`${playerName}_selectedSkin`) || 'b1.png';
+     birdImage.src = `MATERIAL/NETHER/${currentSkin}`;
+     backgroundMusic.pause();
+     backgroundMusic.currentTime = 0;
 
-    // 🧠 SKIN SYSTEM
-    const skins = [
-      { file: 'b1.png', unlockScore: 0 },
-      { file: 'b22.png', unlockScore: 50 },
-      { file: 'b3.png', unlockScore: 100 },
-      { file: 'b4.png', unlockScore: 150 }
-    ];
+     if (animationFrameId) {
+         cancelAnimationFrame(animationFrameId);
+         animationFrameId = null;
+     }
+     drawInitialScreen(); // Dibuja el estado inicial, listo para saltar
+     gameOverModal.style.display = 'none';
+     gameWonModal.style.display = 'none';
+   }
 
-    const skinMenu = document.getElementById('skinMenu');
-    const skinMenuButton = document.getElementById('skinMenuButton');
+   function drawInitialScreen() {
+       drawBackground();
+       drawBird();
+   }
 
-    skinMenuButton.addEventListener('click', () => {
-      skinMenu.style.display = skinMenu.style.display === 'flex' ? 'none' : 'flex';
-      loadSkins();
-    });
+   function drawBackground() {
+       ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+   }
 
-    function loadSkins() {
-      skinMenu.innerHTML = '';
-      skins.forEach(skin => {
-        const div = document.createElement('div');
-        div.classList.add('skin-option');
-        if (highScore < skin.unlockScore) div.classList.add('locked');
-        const img = document.createElement('img');
-        img.src = `MATERIAL/NETHER/${skin.file}`;
-        div.appendChild(img);
-        if (highScore >= skin.unlockScore) {
-          div.addEventListener('click', () => {
-            localStorage.setItem('selectedSkin', skin.file);
-            birdImage.src = `MATERIAL/NETHER/${skin.file}`;
-            skinMenu.style.display = 'none';
-          });
-        }
-        skinMenu.appendChild(div);
-      });
-    }
+   function drawBird() {
+       ctx.drawImage(birdImage, birdX - birdWidth / 2, birdY - birdHeight / 2, birdWidth, birdHeight);
+   }
 
-    let assetsLoaded = 0;
-    [backgroundImage, birdImage, pipeImage].forEach(img => {
-      img.onload = () => {
-        assetsLoaded++;
-        if (assetsLoaded === 3) {
-          drawInitialScreen();
-        }
-      };
-    });
+   function drawKeys() {
+       obstacles.forEach(ob => {
+           if (ob.key && !ob.key.collected) {
+               if (keyImage.complete && keyImage.naturalHeight !== 0) {
+                   ctx.drawImage(keyImage, ob.key.x, ob.key.y, keyWidth, keyHeight);
+               } else {
+                   ctx.fillStyle = 'yellow'; // Fallback
+                   ctx.fillRect(ob.key.x, ob.key.y, keyWidth, keyHeight);
+               }
+           }
+       });
+   }
 
-    localStorage.setItem("juego2", "Progreso del jugador");
-  </script>
-  
-  
+   function drawObstacles() {
+     obstacles.forEach(ob => {
+       let yTop = ob.top;
+       while (yTop > 0) {
+           const h = Math.min(pipeImage.height, yTop);
+           ctx.save();
+           ctx.translate(ob.x + pipeWidth / 2, yTop - h / 2);
+           ctx.scale(1, -1);
+           ctx.drawImage(pipeImage, -pipeWidth / 2, -h / 2, pipeWidth, h);
+           ctx.restore();
+           yTop -= h;
+       }
+
+       let yBottom = ob.bottomY;
+       let remainingHeight = canvas.height - yBottom;
+       while (remainingHeight > 0) {
+           const h = Math.min(pipeImage.height, remainingHeight);
+           ctx.drawImage(pipeImage, ob.x, yBottom, pipeWidth, h);
+           yBottom += h;
+           remainingHeight -= h;
+       }
+     });
+   }
+
+
+   function updateObstacles() {
+     if (frame % spawnRate === 0) {
+       const type = Math.random() < 0.65 ? 'keyPillar' : 'openPillar';
+       const gapCenterY = Math.random() * (canvas.height - pipeGap - 120) + 60 + (pipeGap / 2);
+
+       let obsTop, obsBottomY;
+       let keyObject = null;
+
+       if (type === 'keyPillar') {
+           obsTop = gapCenterY - 2;
+           obsBottomY = gapCenterY + 2;
+           keyObject = {
+               x: canvas.width + pipeWidth / 2 - keyWidth / 2 - 70,
+               y: gapCenterY - keyHeight / 2,
+               collected: false
+           };
+       } else {
+           obsTop = gapCenterY - pipeGap / 2;
+           obsBottomY = gapCenterY + pipeGap / 2;
+       }
+
+       obstacles.push({
+           x: canvas.width,
+           width: pipeWidth,
+           top: obsTop,
+           bottomY: obsBottomY,
+           type: type,
+           key: keyObject,
+           opened: (type === 'openPillar'),
+       });
+     }
+
+     obstacles.forEach(ob => {
+       ob.x -= obstacleSpeed;
+       if (ob.key && !ob.key.collected) {
+           ob.key.x -= obstacleSpeed;
+
+           const birdRect = { x: birdX - birdWidth / 2, y: birdY - birdHeight / 2, width: birdWidth, height: birdHeight };
+           const keyRect = { x: ob.key.x, y: ob.key.y, width: keyWidth, height: keyHeight };
+
+           if (birdRect.x < keyRect.x + keyRect.width &&
+               birdRect.x + birdRect.width > keyRect.x &&
+               birdRect.y < keyRect.y + keyRect.height &&
+               birdRect.y + birdRect.height > keyRect.y) {
+               ob.key.collected = true;
+               keysCollected++;
+               updateScoreDisplays();
+               pointSound.play().catch(e => console.warn("Error al reproducir sonido de punto:", e));
+
+
+               if (ob.type === 'keyPillar') {
+                   ob.opened = true;
+                   const keyCenterY = ob.key.y + keyHeight / 2;
+                   ob.top = keyCenterY - pipeGap / 2;
+                   ob.bottomY = keyCenterY + pipeGap / 2;
+               }
+           }
+       }
+     });
+
+     obstacles = obstacles.filter(ob => ob.x + ob.width > 0 || (ob.key && ob.key.x + keyWidth > 0) );
+   }
+
+   function checkCollision() {
+     const birdRadius = birdWidth / 2 - 5;
+     const birdLeft = birdX - birdRadius;
+     const birdRight = birdX + birdRadius;
+     const birdTop = birdY - birdRadius;
+     const birdBottom = birdY + birdRadius;
+
+     if (birdBottom > canvas.height || birdTop < 0) {
+         return true;
+     }
+
+     for (let ob of obstacles) {
+         const pillarRight = ob.x + ob.width;
+         if (birdRight > ob.x && birdLeft < pillarRight) {
+             if (ob.type === 'keyPillar' && !ob.opened) {
+                    if (birdTop < ob.top || birdBottom > ob.bottomY) { // Colisión con pilar cerrado
+                       return true;
+                    }
+             } else { // Pilar abierto
+                 if (birdTop < ob.top || birdBottom > ob.bottomY) {
+                     return true;
+                 }
+             }
+         }
+     }
+     return false;
+   }
+
+   function gameLoop() {
+     if (gameOver || gameWon) return;
+
+     if (keysCollected >= keysToWin) {
+       gameWon = true;
+       gameOver = true;
+       birdImage.src = `MATERIAL/NETHER/${localStorage.getItem(`${playerName}_selectedSkin`) || 'b1.png'}`;
+       drawBird();
+       backgroundMusic.pause();
+       // winSound.play().catch(e => console.warn("Error al reproducir sonido de victoria:", e));
+       finalKeyScoreDisplay.textContent = `Llaves Recogidas: ${keysCollected}`;
+       gameWonModal.style.display = 'flex';
+       if (animationFrameId) cancelAnimationFrame(animationFrameId);
+       return;
+     }
+
+     drawBackground();
+     updateObstacles();
+     drawObstacles();
+     drawKeys();
+
+     birdVelocity += gravity;
+     birdY += birdVelocity;
+     drawBird();
+
+     if (checkCollision()) {
+       gameOver = true;
+       birdImage.src = birdDeathImageSrc;
+       drawBird();
+       deathSound.play().catch(e => console.warn("Error al reproducir sonido de muerte:", e));
+       backgroundMusic.pause();
+       gameOverModal.style.display = 'flex';
+       if (animationFrameId) cancelAnimationFrame(animationFrameId);
+       return;
+     }
+
+     frame++;
+     animationFrameId = requestAnimationFrame(gameLoop);
+   }
+
+   function jump() {
+     // No permitir saltar si el modal de objetivo no se ha cerrado, o si el juego terminó, o si la pantalla de carga está activa
+     if (!objectiveModalDismissed || gameOver || gameWon || loadingScreen.style.display !== 'none') return;
+
+     if (!gameStarted) {
+         gameStarted = true;
+         birdVelocity = 0;
+         backgroundMusic.loop = true;
+         backgroundMusic.volume = 0.5;
+         backgroundMusic.play().catch(e => console.warn("Error al reproducir música de fondo:", e));
+         if (animationFrameId) cancelAnimationFrame(animationFrameId);
+         gameLoop();
+     }
+     birdVelocity = jumpStrength;
+     jumpSound.currentTime = 0;
+     jumpSound.play().catch(e => console.warn("Error al reproducir sonido de salto:", e));
+
+     if (navigator.vibrate) {
+         try { navigator.vibrate(50); }
+         catch (e) { console.warn("Vibración falló:", e); }
+     }
+   }
+
+   // --- EVENT LISTENERS ---
+   canvas.addEventListener('click', jump);
+   canvas.addEventListener('touchstart', (e) => { e.preventDefault(); jump(); }, { passive: false });
+   window.addEventListener('keydown', (e) => { if (e.code === 'Space') { e.preventDefault(); jump(); } });
+
+   restartButton.addEventListener('click', resetGame);
+   proceedButton.addEventListener('click', () => {
+       window.location.href = 'panel.html';
+   });
+   objectiveUnderstoodButton.addEventListener('click', prepareGameEnvironment); // Nuevo
+   closeButton.addEventListener('click', (e) => {
+       // La navegación ya está en el href del <a>
+   });
+
+
+   // --- SKIN SYSTEM ---
+   const skins = [
+       { file: 'b1.png', unlockScore: 0 },
+       { file: 'b22.png', unlockScore: 5 },
+       { file: 'b3.png', unlockScore: 10 },
+       { file: 'b4.png', unlockScore: 15 }
+   ];
+
+   skinMenuButton.addEventListener('click', () => {
+       const isVisible = skinMenu.style.display === 'flex';
+       skinMenu.style.display = isVisible ? 'none' : 'flex';
+       if (!isVisible) loadSkins();
+   });
+
+   function loadSkins() {
+       skinMenu.innerHTML = '';
+       const currentKeyHighScore = parseInt(localStorage.getItem(`${playerName}_flappyKeyHighScore`)) || 0;
+       skins.forEach(skin => {
+           const div = document.createElement('div');
+           div.classList.add('skin-option');
+           const isLocked = currentKeyHighScore < skin.unlockScore;
+
+           const img = document.createElement('img');
+           img.src = `MATERIAL/NETHER/${skin.file}`; // Asegúrate que estas rutas sean correctas
+           img.alt = `Skin ${skin.file.split('.')[0]}`;
+           div.appendChild(img);
+
+           const unlockCostText = document.createElement('p');
+           unlockCostText.classList.add('skin-unlock-cost');
+           if (skin.unlockScore === 0) {
+               unlockCostText.textContent = 'Gratis';
+           } else {
+               unlockCostText.textContent = `${skin.unlockScore} Llaves`;
+           }
+           div.appendChild(unlockCostText);
+
+           if (isLocked) {
+               div.classList.add('locked');
+           } else {
+               div.addEventListener('click', () => {
+                   localStorage.setItem(`${playerName}_selectedSkin`, skin.file);
+                   birdImage.src = `MATERIAL/NETHER/${skin.file}`;
+                   if (!gameStarted && !gameOver && !gameWon) drawInitialScreen();
+                   skinMenu.style.display = 'none';
+               });
+           }
+           skinMenu.appendChild(div);
+       });
+   }
+
+   // --- INICIO ---
+   loadAssets();
+
+ </script>
 </body>
 </html>
+
